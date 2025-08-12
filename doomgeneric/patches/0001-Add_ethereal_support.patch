@@ -38,7 +38,7 @@ index 503e0dc..314bc2d
 +CC=x86_64-ethereal-gcc  # gcc or g++
 +CFLAGS+=-Os -g
 +LDFLAGS+=-static
-+CFLAGS+=-Wall -I/home/samuel/Desktop/reduceOS/build-output/sysroot/usr/include/ -I/home/samuel/Desktop/reduceOS/build-output/sysroot/usr/include/freetype2/ # -DUSEASM
++CFLAGS+=-Wall -I$SYSROOT/usr/include/ -I$SYSROOT/usr/include/freetype2/ # -DUSEASM
 +LIBS+=-lcelestial -lgraphics -lkeyboard -lfreetype -lstructures -lpolyhedron
  
  # subdirectory for objects

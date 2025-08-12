@@ -1,5 +1,10 @@
 #!/bin/sh
 
+if ! [ -n "$SYSROOT" ]; then
+	echo "The \$SYSROOT environ must be set to build this port"
+	exit 1
+fi
+
 set -e
 mkdir output
 git clone https://github.com/ozkl/doomgeneric
