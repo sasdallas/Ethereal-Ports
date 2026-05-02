@@ -1,0 +1,99 @@
+diff --git a/Makefile b/Makefile
+index d21f1cad..53704ad7 100644
+--- a/Makefile
++++ b/Makefile
+@@ -118,6 +118,10 @@ DEF-c67            = -DTCC_TARGET_C67 -w # disable warnigs
+ DEF-x86_64-FreeBSD = $(DEF-x86_64) -DTARGETOS_FreeBSD
+ DEF-x86_64-NetBSD  = $(DEF-x86_64) -DTARGETOS_NetBSD
+ DEF-x86_64-OpenBSD = $(DEF-x86_64) -DTARGETOS_OpenBSD
++DEF-x86_64-ethereal = $(DEF-x86_64) -DTARGETOS_ethereal
++DEF-i386-ethereal 	=  -DTARGETOS_ethereal
++DEF-arm64-ethereal = $(DEF-arm64) -DTARGETOS_ethereal
++
+ 
+ ifeq ($(INCLUDED),no)
+ # --------------------------------------------------------------------------
+@@ -256,7 +260,7 @@ endif
+ 	$S./c2str.exe $< $@
+ 
+ c2str.exe : conftest.c
+-	$S$(CC) -DC2STR $< -o $@
++	gcc -DC2STR $< -o $@
+ 
+ # target specific object rule
+ $(X)%.o : %.c $(LIBTCC_INC)
+diff --git a/configure b/configure
+index c1abffc9..0d585f67 100755
+--- a/configure
++++ b/configure
+@@ -379,6 +379,9 @@ case $targetos in
+   DragonFly|OpenBSD|FreeBSD|NetBSD)
+     confvars_set BSD ldl=no
+     ;;
++  ethereal)
++    confvars_set ethereal ldl=no pthread=no
++    ;;
+   Android|Termux)
+     if test "$targetos" = "Termux"; then
+       targetos=Android
+@@ -664,6 +667,7 @@ for v in $cpu $confvars ; do
+     CONFIG_WIN32=yes)       print_num TCC_TARGET_PE 1 ;;
+     CONFIG_OSX=yes)         print_num TCC_TARGET_MACHO 1 ;;
+     CONFIG_Android=yes)     print_num TARGETOS_ANDROID 1 ;;
++    CONFIG_ethereal=yes)    print_num TARGETOS_ETHEREAL 1 ;;
+     CONFIG_BSD=yes)         print_num TARGETOS_$targetos 1
+       case "$targetos" in
+         FreeBSD)    default tcc_elfinterp "/libexec/ld-elf.so.1";;
+diff --git a/lib/Makefile b/lib/Makefile
+index 5357e25f..1a10fb7a 100644
+--- a/lib/Makefile
++++ b/lib/Makefile
+@@ -17,7 +17,7 @@ XAR = $(XTCC) -ar
+ XFLAGS-unx = -B$(TOPSRC)
+ XFLAGS-win = -B$(TOPSRC)/win32 -I$(TOPSRC)/include
+ XFLAGS = $(XFLAGS$(XCFG))
+-BFLAGS = -bt
++#BFLAGS = -bt
+ 
+ # in order to use gcc, type: make <target>-libtcc1-usegcc=yes
+ arm-libtcc1-usegcc ?= no
+diff --git a/tcc.c b/tcc.c
+index e1819239..ebefc2df 100644
+--- a/tcc.c
++++ b/tcc.c
+@@ -202,6 +202,8 @@ static const char version[] =
+         " OpenBSD"
+ #elif TARGETOS_NetBSD
+         " NetBSD"
++#elif TARGETOS_ethereal
++        " Ethereal"
+ #else
+         " Linux"
+ #endif
+diff --git a/tccelf.c b/tccelf.c
+index b71c6f2b..d4ec30c3 100644
+--- a/tccelf.c
++++ b/tccelf.c
+@@ -1771,6 +1771,9 @@ ST_FUNC void tccelf_add_crtbegin(TCCState *s1)
+         tcc_add_crt(s1, "crtbegin_so.o");
+     else
+         tcc_add_crt(s1, "crtbegin_dynamic.o");
++#elif TARGETOS_ethereal
++    tcc_add_crt(s1, "crt0.o");
++    tcc_add_crt(s1, "crti.o");
+ #else
+     if (s1->output_type != TCC_OUTPUT_DLL)
+         tcc_add_crt(s1, "crt1.o");
+diff --git a/tccpp.c b/tccpp.c
+index 269b3b41..d126c654 100644
+--- a/tccpp.c
++++ b/tccpp.c
+@@ -3624,6 +3624,8 @@ static const char * const target_os_defs =
+     "__NetBSD__\0"
+ # elif TARGETOS_OpenBSD
+     "__OpenBSD__\0"
++#elif TARGETOS_ethereal
++    "__ETHEREAL__\0"
+ # else
+     "__linux__\0"
+     "__linux\0"
