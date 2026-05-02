@@ -11,11 +11,11 @@ if ! [ -n "$TRIPLET" ]; then
 fi
 
 set -e
-mkdir output || true
 git clone https://github.com/TinyCC/tinycc
 cd tinycc
 
 git apply ../patches/0001-Add_ethereal_support.patch
+
 # thanks to tayoky for figuring out the configs
 ./configure --targetos=ethereal --enable-static --sysroot=$SYSROOT --prefix=/usr --cc=$CC --triplet=$TRIPLET --elfinterp=/usr/lib/ld.so --libpaths=/usr/lib:/usr/lib/tcc --sysincludepaths=/usr/include:/usr/lib/tcc/include/ --crtprefix=/usr/lib
 
