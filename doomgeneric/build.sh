@@ -1,15 +1,21 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
-if ! [ -n "$SYSROOT" ]; then
-	echo "The \$SYSROOT environ must be set to build this port"
-	exit 1
-fi
+NAME="doomgeneric"
+GIT_URL="https://github.com/ozkl/doomgeneric"
+GIT_COMMIT="ee0c159d5cfc0483f6c0e83c8130924093b4751c"
 
-set -e
-git clone https://github.com/ozkl/doomgeneric
-cd doomgeneric
-git apply ../patches/0001-Add_ethereal_support.patch
-cd doomgeneric
-make all
-cp doomgeneric $SYSROOT/usr/bin/
-cd ../../
+configure() {
+    return
+}
+
+build() {
+    pushd doomgeneric >/dev/null
+    make -j$NPROC CC=$CC || exit 1
+    popd >/dev/null
+}
+
+install() {
+    pushd doomgeneric >/dev/null
+    cp doomgeneric $SYSROOT/usr/bin/
+    popd >/dev/null
+}

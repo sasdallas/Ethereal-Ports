@@ -1,0 +1,6 @@
+diff '--color=auto' -rU0 --new-file mpfr-4.2.2/config.sub mpfr-4.2.2-ethereal/config.sub
+--- mpfr-4.2.2/config.sub	2025-03-20 04:21:11.000000000 -0500
++++ mpfr-4.2.2-ethereal/config.sub	2025-10-07 18:43:27.063248522 -0500
+@@ -1757 +1757 @@
+-	     | fiwix* )
++	     | fiwix* | ethereal*)

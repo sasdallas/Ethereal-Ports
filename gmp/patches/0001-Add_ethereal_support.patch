@@ -1,0 +1,6 @@
+diff '--color=auto' -rU0 --new-file gmp-6.2.1/configfsf.sub gmp-6.2.1-ethereal/configfsf.sub
+--- gmp-6.2.1/configfsf.sub	2020-11-14 12:45:09.000000000 -0600
++++ gmp-6.2.1-ethereal/configfsf.sub	2025-10-07 18:41:07.739664275 -0500
+@@ -1723 +1723 @@
+-	     | nsk* | powerunix* | genode* | zvmoe* | qnx* | emx*)
++	     | nsk* | powerunix* | genode* | zvmoe* | qnx* | emx* | ethereal*)
