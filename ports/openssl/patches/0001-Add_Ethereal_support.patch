@@ -1,0 +1,68 @@
+diff -Naur old_extract/openssl-3.3.1/Configurations/10-main.conf new_workspace/openssl-3.3.1/Configurations/10-main.conf
+--- a/Configurations/10-main.conf	2024-06-04 07:53:04.000000000 -0500
++++ b/Configurations/10-main.conf	2025-06-25 17:55:17.928556562 -0500
+@@ -668,6 +668,26 @@
+         shared_extension => ".so",
+     },
+ 
++### Ethereal
++    "ethereal-generic" => {
++	     inherit_from	=> [ "BASE_unix" ],
++	     CC               => "x86_64-ethereal-gcc",
++	     CXX              => "x86_64-ethereal-g++",
++	     CFLAGS           => picker(default => "-Wall",
++                                    debug   => "-O0 -g",
++                                    release => "-O3"),
++        CXXFLAGS         => picker(default => "-Wall",
++                                    debug   => "-O0 -g",
++                                    release => "-O3"),
++        cxxflags         => "-std=c++11",
++        lib_cppflags     => "-DOPENSSL_USE_NODELETE",
++        bn_ops           => "BN_LLONG RC4_CHAR",
++	     shared_target    => "ethereal-shared",
++	     shared_cflag     => "-fPIC",
++        shared_ldflag    => sub { $disabled{pinshared} ? () : "-Wl,-znodelete" },
++        shared_extension => ".so.\$(SHLIB_VERSION_NUMBER)",
++    },
++
+ ####
+ #### Variety of LINUX:-)
+ ####
+diff -Naur old_extract/openssl-3.3.1/Configurations/shared-info.pl new_workspace/openssl-3.3.1/Configurations/shared-info.pl
+--- a/Configurations/shared-info.pl	2024-06-04 07:53:04.000000000 -0500
++++ b/Configurations/shared-info.pl	2025-06-25 17:52:02.512030596 -0500
+@@ -39,6 +39,11 @@
+                 : '-Wl,-z,defs',
+         };
+     },
++    'ethereal-shared' => {
++	    shared_ldflag			=> '-shared',
++	    shared_sonameflag		=> '-Wl,-soname=',
++	    shared_defflag			=> '-Wl,-version-script=',
++    },
+     'bsd-gcc-shared' => sub { return $shared_info{'linux-shared'}; },
+     'bsd-gcc-nodef-shared' => sub { 
+         return {
+diff -Naur old_extract/openssl-3.3.1/crypto/bio/bss_dgram.c new_workspace/openssl-3.3.1/crypto/bio/bss_dgram.c
+--- a/crypto/bio/bss_dgram.c	2024-06-04 07:53:04.000000000 -0500
++++ b/crypto/bio/bss_dgram.c	2025-06-25 17:53:03.205618196 -0500
+@@ -61,7 +61,7 @@
+ #   define NO_RECVMMSG
+ #  endif
+ # endif
+-# if defined(__GNU__)
++# if defined(__GNU__) || defined(__ETHEREAL__)
+    /* GNU/Hurd does not have IP_PKTINFO yet */
+    #undef NO_RECVMSG
+    #define NO_RECVMSG
+diff -Naur old_extract/openssl-3.3.1/util/mkdef.pl new_workspace/openssl-3.3.1/util/mkdef.pl
+--- a/util/mkdef.pl	2024-06-04 07:53:04.000000000 -0500
++++ b/util/mkdef.pl	2025-06-25 17:52:29.772051829 -0500
+@@ -113,6 +113,7 @@
+                      platforms  => { UNIX                       => 1 } },
+     "solaris-gcc" => 'solaris', # alias
+     linux       => 'solaris',   # alias
++    ethereal	 => 'solaris',	 # alias
+     "bsd-gcc"   => 'solaris',   # alias
+     aix         => { writer     => \&writer_aix,
+                      sort       => sorter_unix(),

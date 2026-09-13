@@ -1,0 +1,53 @@
+diff -Naur old_extract/libiconv-1.18/build-aux/config.sub new_workspace/libiconv-1.18/build-aux/config.sub
+--- a/build-aux/config.sub	2024-09-26 07:54:51.000000000 -0500
++++ b/build-aux/config.sub	2025-09-14 16:57:59.119231900 -0500
+@@ -2003,6 +2003,7 @@
+ 	| ekkobsd* \
+ 	| emscripten* \
+ 	| emx* \
++	| ethereal* \
+ 	| es* \
+ 	| fiwix* \
+ 	| freebsd* \
+diff -Naur old_extract/libiconv-1.18/configure new_workspace/libiconv-1.18/configure
+--- a/configure	2024-12-15 05:57:14.000000000 -0600
++++ b/configure	2025-09-14 16:57:30.184665897 -0500
+@@ -8819,6 +8819,10 @@
+   lt_cv_deplibs_check_method=pass_all
+   ;;
+ 
++ethereal*)
++  lt_cv_deplibs_check_method=pass_all
++  ;;
++
+ freebsd* | dragonfly* | midnightbsd*)
+   if echo __ELF__ | $CC -E - | $GREP __ELF__ > /dev/null; then
+     case $host_cpu in
+@@ -14678,6 +14682,16 @@
+   shlibpath_var=LD_LIBRARY_PATH
+   ;;
+ 
++ethereal*)
++  version_type=linux # correct to gnu/linux during the next big refactor
++  need_lib_prefix=no
++  need_version=no
++  library_names_spec='$libname$release$shared_ext$versuffix $libname$release$shared_ext$major $libname$shared_ext'
++  soname_spec='$libname$release$shared_ext$major'
++  dynamic_linker="$host_os ld.so"
++  shlibpath_var=LD_LIBRARY_PATH
++  ;;
++
+ freebsd* | dragonfly* | midnightbsd*)
+   # DragonFly does not have aout.  When/if they implement a new
+   # versioning mechanism, adjust this.
+diff -Naur old_extract/libiconv-1.18/libcharset/build-aux/config.sub new_workspace/libiconv-1.18/libcharset/build-aux/config.sub
+--- a/libcharset/build-aux/config.sub	2024-09-26 07:54:51.000000000 -0500
++++ b/libcharset/build-aux/config.sub	2025-09-14 16:58:17.276004623 -0500
+@@ -2004,6 +2004,7 @@
+ 	| emscripten* \
+ 	| emx* \
+ 	| es* \
++	| ethereal* \
+ 	| fiwix* \
+ 	| freebsd* \
+ 	| fuchsia* \

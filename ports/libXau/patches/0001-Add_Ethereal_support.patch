@@ -1,0 +1,31 @@
+diff -Naur old_extract/libXau-1.0.12/config.sub new_workspace/libXau-1.0.12/config.sub
+--- a/config.sub	2024-12-13 19:33:03.000000000 -0600
++++ b/config.sub	2026-06-03 12:23:09.752121006 -0500
+@@ -1768,7 +1768,7 @@
+ 	     | onefs* | tirtos* | phoenix* | fuchsia* | redox* | bme* \
+ 	     | midnightbsd* | amdhsa* | unleashed* | emscripten* | wasi* \
+ 	     | nsk* | powerunix* | genode* | zvmoe* | qnx* | emx* | zephyr* \
+-	     | fiwix* | mlibc* | cos* | mbr* | ironclad* )
++	     | fiwix* | mlibc* | cos* | mbr* | ironclad* | ethereal*)
+ 		;;
+ 	# This one is extra strict with allowed versions
+ 	sco3.2v2 | sco3.2v[4-9]* | sco5v6*)
+diff -Naur old_extract/libXau-1.0.12/configure new_workspace/libXau-1.0.12/configure
+--- a/configure	2024-12-13 19:33:02.000000000 -0600
++++ b/configure	2026-06-03 13:01:02.408720566 -0500
+@@ -12228,6 +12228,15 @@
+   shlibpath_var=LD_LIBRARY_PATH
+   ;;
+ 
++ethereal*)
++  version_type=linux # correct to gnu/linux during the next big refactor
++  need_lib_prefix=no
++  need_version=no
++  library_names_spec='$libname$release$shared_ext$versuffix $libname$release$shared_ext$major $libname$shared_ext'
++  soname_spec='$libname$release$shared_ext$major'
++  shlibpath_var=LD_LIBRARY_PATH
++  ;;
++
+ freebsd* | dragonfly* | midnightbsd*)
+   # DragonFly does not have aout.  When/if they implement a new
+   # versioning mechanism, adjust this.

@@ -1,0 +1,12 @@
+diff -Naur old_extract/xtrans-1.6.0/config.sub new_workspace/xtrans-1.6.0/config.sub
+--- a/config.sub	2025-03-08 18:12:58.000000000 -0600
++++ b/config.sub	2026-06-03 13:10:35.991608360 -0500
+@@ -1750,7 +1750,7 @@
+ 	     | clix* | riscos* | uniplus* | iris* | isc* | rtu* | xenix* \
+ 	     | mirbsd* | netbsd* | dicos* | openedition* | ose* \
+ 	     | bitrig* | openbsd* | secbsd* | solidbsd* | libertybsd* | os108* \
+-	     | ekkobsd* | freebsd* | riscix* | lynxos* | os400* \
++	     | ekkobsd* | freebsd* | ethereal* | riscix* | lynxos* | os400* \
+ 	     | bosx* | nextstep* | cxux* | oabi* \
+ 	     | ptx* | ecoff* | winnt* | domain* | vsta* \
+ 	     | udi* | lites* | ieee* | go32* | aux* | hcos* \

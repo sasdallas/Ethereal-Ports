@@ -1,0 +1,31 @@
+diff -Naur old_extract/libXdmcp-1.1.5/config.sub new_workspace/libXdmcp-1.1.5/config.sub
+--- a/config.sub	2024-03-02 15:37:20.000000000 -0600
++++ b/config.sub	2026-06-03 12:24:10.257020085 -0500
+@@ -1758,7 +1758,7 @@
+ 	     | onefs* | tirtos* | phoenix* | fuchsia* | redox* | bme* \
+ 	     | midnightbsd* | amdhsa* | unleashed* | emscripten* | wasi* \
+ 	     | nsk* | powerunix* | genode* | zvmoe* | qnx* | emx* | zephyr* \
+-	     | fiwix* | mlibc* )
++	     | fiwix* | mlibc* | ethereal*)
+ 		;;
+ 	# This one is extra strict with allowed versions
+ 	sco3.2v2 | sco3.2v[4-9]* | sco5v6*)
+diff -Naur old_extract/libXdmcp-1.1.5/configure new_workspace/libXdmcp-1.1.5/configure
+--- a/configure	2024-03-02 15:37:19.000000000 -0600
++++ b/configure	2026-06-03 13:02:02.493170885 -0500
+@@ -12114,6 +12114,15 @@
+   shlibpath_var=LD_LIBRARY_PATH
+   ;;
+ 
++ethereal*)
++  version_type=linux # correct to gnu/linux during the next big refactor
++  need_lib_prefix=no
++  need_version=no
++  library_names_spec='$libname$release$shared_ext$versuffix $libname$release$shared_ext$major $libname$shared_ext'
++  soname_spec='$libname$release$shared_ext$major'
++  shlibpath_var=LD_LIBRARY_PATH
++  ;;
++
+ freebsd* | dragonfly* | midnightbsd*)
+   # DragonFly does not have aout.  When/if they implement a new
+   # versioning mechanism, adjust this.

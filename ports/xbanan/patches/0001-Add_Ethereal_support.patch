@@ -1,0 +1,236 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 8ecef1a..8c45c30 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -28,7 +28,7 @@ add_compile_options(-g)
+ 
+ set(PLATFORM "banan-os" CACHE STRING "target platform")
+ 
+-set(VALID_PLATFORMS "banan-os" "SDL3")
++set(VALID_PLATFORMS "banan-os" "SDL3" "ethereal")
+ if(NOT PLATFORM IN_LIST VALID_PLATFORMS)
+ 	message(FATAL_ERROR "platform \"${PLATFORM}\" not known, valid platforms are ${VALID_PLATFORMS}")
+ endif()
+diff --git a/xbanan/CMakeLists.txt b/xbanan/CMakeLists.txt
+index 7012d57..ba07c6c 100644
+--- a/xbanan/CMakeLists.txt
++++ b/xbanan/CMakeLists.txt
+@@ -29,6 +29,8 @@ if(PLATFORM STREQUAL "banan-os")
+ 	list(APPEND XBANAN_SOURCES banan-os/banan-os.cpp)
+ elseif(PLATFORM STREQUAL "SDL3")
+ 	list(APPEND XBANAN_SOURCES SDL3/sdl3.cpp)
++elseif(PLATFORM STREQUAL "ethereal")
++	list(APPEND XBANAN_SOURCES ethereal/ethereal.cpp)
+ endif()
+ 
+ add_executable(xbanan ${XBANAN_SOURCES})
+@@ -43,6 +45,14 @@ if(PLATFORM STREQUAL "banan-os")
+ elseif(PLATFORM STREQUAL "SDL3")
+ 	find_package(SDL3 REQUIRED)
+ 	banan_link_library(xbanan SDL3::SDL3)
++elseif(PLATFORM STREQUAL "ethereal")
++	# celestial does not support the banan_include_headers macro
++	target_link_libraries(xbanan PUBLIC celestial graphics ethereal structures)
++
++	# who knows why this is needed
++	find_package(PkgConfig REQUIRED)
++	pkg_check_modules(FREETYPE REQUIRED IMPORTED_TARGET freetype2)
++	target_link_libraries(xbanan PRIVATE PkgConfig::FREETYPE)
+ endif()
+ 
+ target_compile_options(xbanan PRIVATE -Wall -Wextra)
+diff --git a/xbanan/ExtXRes.cpp b/xbanan/ExtXRes.cpp
+index 3318320..be12b8c 100644
+--- a/xbanan/ExtXRes.cpp
++++ b/xbanan/ExtXRes.cpp
+@@ -12,7 +12,7 @@ static BAN::ErrorOr<void> for_each_client(uint32_t target_spec, const F& callbac
+ 		if (thingy.type != Pollable::Type::Client)
+ 			continue;
+ 
+-		Client& client_info = thingy.value.get<Client>();
++		Client& client_info = thingy.value.template get<Client>();
+ 		if (target_spec && (target_spec >> 20) != client_info.fd)
+ 			continue;
+ 
+diff --git a/xbanan/ethereal/ethereal.cpp b/xbanan/ethereal/ethereal.cpp
+new file mode 100644
+index 0000000..bd5c569
+--- /dev/null
++++ b/xbanan/ethereal/ethereal.cpp
+@@ -0,0 +1,176 @@
++#include "../Events.h"
++#include "../Keymap.h"
++#include "../Platform.h"
++#include <errno.h>
++
++
++#include <BAN/Vector.h>
++
++
++extern "C" {
++    #include <ethereal/celestial.h>
++    #include <graphics/gfx.h>
++};
++
++bool has_registered = false;
++
++#define TRACE() fprintf(stderr, "%s\n", __FUNCTION__)
++
++struct EtherealWindow final : public PlatformWindow {
++	window_t *window;
++};
++
++
++static bool ethereal_initialize(uint32_t *display_w, uint32_t *display_h) {
++    celestial_info_t *info =celestial_getServerInformation();
++    if (!info) {
++        fprintf(stderr, "ethereal_initialize: failed to get Celestial server information: %s\n", strerror(errno));
++        return false;
++    }
++
++    *display_w = info->screen_width;
++    *display_h = info->screen_height; 
++
++    return true;
++}
++
++static void ethereal_mouse_handler(window_t *window, uint32_t event_type, void *event) {
++    if (event_type == CELESTIAL_EVENT_MOUSE_MOTION) {
++        celestial_event_mouse_motion_t *ev = (celestial_event_mouse_motion_t*)event;
++        on_mouse_move_event((WINDOW)(uintptr_t)window->d, ev->x, ev->y);;
++    } else if (event_type == CELESTIAL_EVENT_MOUSE_BUTTON_DOWN) {
++        celestial_event_mouse_button_down_t *ev = (celestial_event_mouse_button_down_t *)event;
++        
++        uint8_t xbutton { 0 };
++        switch (ev->held) {
++            case CELESTIAL_MOUSE_BUTTON_LEFT: xbutton = 1; break;
++            case CELESTIAL_MOUSE_BUTTON_MIDDLE: xbutton = 2; break;
++            case CELESTIAL_MOUSE_BUTTON_RIGHT: xbutton = 3; break;
++            default: return;
++        }
++
++        on_mouse_button_event((WINDOW)(uintptr_t)window->d, xbutton, true);
++    } else if (event_type == CELESTIAL_EVENT_MOUSE_BUTTON_UP) {
++        celestial_event_mouse_button_up_t *ev = (celestial_event_mouse_button_up_t *)event;
++        
++        uint8_t xbutton { 0 };
++        switch (ev->released) {
++            case CELESTIAL_MOUSE_BUTTON_LEFT: xbutton = 1; break;
++            case CELESTIAL_MOUSE_BUTTON_MIDDLE: xbutton = 2; break;
++            case CELESTIAL_MOUSE_BUTTON_RIGHT: xbutton = 3; break;
++            default: return;
++        }
++
++        on_mouse_button_event((WINDOW)(uintptr_t)window->d, xbutton, false);
++    } else if (event_type == CELESTIAL_EVENT_MOUSE_EXIT) {
++        on_window_leave_event((WINDOW)(uintptr_t)window->d);
++    }
++}
++
++static void ethereal_window_handler(window_t *window, uint32_t event_type, void *event) {
++    TRACE();
++    if (event_type == CELESTIAL_EVENT_FOCUSED) {
++        on_window_focus_event((WINDOW)(uintptr_t)window->d, true);
++    } else if (event_type == CELESTIAL_EVENT_UNFOCUSED) {
++        on_window_focus_event((WINDOW)(uintptr_t)window->d, false);
++    }
++}
++\
++
++static BAN::ErrorOr<BAN::UniqPtr<PlatformWindow>> ethereal_create_window(PlatformWindow* parent, WindowType type, WINDOW wid, int32_t x, int32_t y, uint32_t width, uint32_t height)
++{
++    TRACE();
++	(void)parent;
++	(void)type;
++	(void)x;
++	(void)y;
++
++	auto window = TRY(BAN::UniqPtr<EtherealWindow>::create());
++
++    wid_t cwid = celestial_createWindowUndecorated(CELESTIAL_WINDOW_FLAG_SOLID, width, height);
++    if (cwid < 0) {
++        fprintf(stderr, "ethereal_create_window: celestial_createWindow: %s\n", strerror(errno));
++        return BAN::Error::from_errno(errno);
++    }
++    
++    window_t *win = celestial_getWindow(cwid);
++    if (!win) {
++        fprintf(stderr, "ethereal_create_window: celestial_getWindow: %s\n", strerror(errno));
++        return BAN::Error::from_errno(errno);
++    }
++
++    window->window = win;
++    win->d = (void*)(uintptr_t)wid;
++
++    // Setup event handlers
++    celestial_setHandler(win, CELESTIAL_EVENT_MOUSE_MOTION, ethereal_mouse_handler);
++    celestial_setHandler(win, CELESTIAL_EVENT_MOUSE_BUTTON_DOWN, ethereal_mouse_handler);
++    celestial_setHandler(win, CELESTIAL_EVENT_MOUSE_BUTTON_UP, ethereal_mouse_handler);
++    celestial_setHandler(win, CELESTIAL_EVENT_MOUSE_EXIT,  ethereal_mouse_handler);
++    celestial_setHandler(win, CELESTIAL_EVENT_FOCUSED,  ethereal_window_handler);
++    celestial_setHandler(win, CELESTIAL_EVENT_UNFOCUSED,  ethereal_window_handler);
++
++    // celestial is connected now
++    celestial_initGraphics(win, CTX_NO_BACKBUFFER);
++    if (!has_registered) {
++        register_event_fd(celestial_getSocketFile(), nullptr);   
++        has_registered = true;
++    }
++
++	return BAN::UniqPtr<PlatformWindow>(BAN::move(window));
++}
++
++static void ethereal_invalidate(PlatformWindow* pwindow, const uint32_t* pixels, uint32_t x, uint32_t y, uint32_t width, uint32_t height)
++{
++    fprintf(stderr, "ethereal_invalidate pixels=%p x=%d y=%d\n", pixels, x, y);
++    auto &window = *static_cast<EtherealWindow*>(pwindow);
++    window_t *cwindow = (window.window);
++    
++    uint32_t *framebuffer = celestial_getFramebuffer(cwindow);
++    const uint32_t win_width = cwindow->width;
++    for (uint32_t y_off = 0; y_off < height; y_off++) {
++		for (uint32_t x_off = 0; x_off < width; x_off++) {
++			framebuffer[(y + y_off) * win_width + (x + x_off)] = pixels[(y + y_off) * win_width + (x + x_off)];
++        }
++    }
++
++    celestial_flip(cwindow);
++}
++
++static void ethereal_poll_events(void *window) {
++    celestial_poll();
++}
++
++static void ethereal_query_pointer(int32_t *x, int32_t *y){
++    TRACE();
++    int mx, my;
++    celestial_queryMouse(&mx, &my);
++    *x = mx;
++    *y = my;
++}
++
++static void ethereal_request_reposition(PlatformWindow *pwindow, int32_t x, int32_t y) {
++    TRACE();
++    auto &window = *static_cast<EtherealWindow*>(pwindow);
++    window_t *cwindow = (window.window);
++    celestial_setWindowPosition(cwindow, x, y);
++}
++
++static void ethereal_request_resize(PlatformWindow *pwindow, uint32_t width, uint32_t height) {
++    TRACE();
++}
++
++PlatformOps g_platform_ops = {
++    .initialize         = ethereal_initialize,
++    .poll_events        = ethereal_poll_events,
++    .create_window      = ethereal_create_window,
++    .invalidate         = ethereal_invalidate,
++    .request_resize     = ethereal_request_resize,
++    .request_reposition = ethereal_request_reposition,
++    .request_fullscreen = nullptr,
++    .warp_pointer       = nullptr,
++    .query_pointer      = ethereal_query_pointer,
++    .set_pointer_grab   = nullptr,
++    .create_system_cursor   = nullptr,
++    .set_cursor         = nullptr,
++};

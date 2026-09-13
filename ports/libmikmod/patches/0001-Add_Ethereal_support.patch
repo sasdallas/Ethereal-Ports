@@ -1,0 +1,41 @@
+diff -Naur old_extract/libmikmod-3.3.13/autotools/config.sub new_workspace/libmikmod-3.3.13/autotools/config.sub
+--- a/autotools/config.sub	2024-10-10 02:10:00.000000000 -0500
++++ b/autotools/config.sub	2026-07-13 17:04:37.475463638 -0500
+@@ -2006,6 +2006,7 @@
+ 	| es* \
+ 	| fiwix* \
+ 	| freebsd* \
++	| ethereal* \
+ 	| fuchsia* \
+ 	| genix* \
+ 	| genode* \
+diff -Naur old_extract/libmikmod-3.3.13/configure new_workspace/libmikmod-3.3.13/configure
+--- a/configure	2025-04-19 20:55:10.000000000 -0500
++++ b/configure	2026-07-13 17:04:20.927681018 -0500
+@@ -6022,6 +6022,10 @@
+   lt_cv_deplibs_check_method=pass_all
+   ;;
+ 
++ethereal*)
++      lt_cv_deplibs_check_method=pass_all
++      ;;
++
+ hpux10.20* | hpux11*)
+   lt_cv_file_magic_cmd=/usr/bin/file
+   case $host_cpu in
+@@ -11882,6 +11886,15 @@
+   version_type=linux # correct to gnu/linux during the next big refactor
+   need_lib_prefix=no
+   need_version=no
++  library_names_spec='$libname$release$shared_ext$versuffix $libname$release$shared_ext$major $libname$shared_ext'
++  soname_spec='$libname$release$shared_ext$major'
++  shlibpath_var=LD_LIBRARY_PATH
++  ;;
++
++ethereal*)
++  version_type=linux # correct to gnu/linux during the next big refactor
++  need_lib_prefix=no
++  need_version=no
+   library_names_spec='$libname$release$shared_ext$versuffix $libname$release$shared_ext$major $libname$shared_ext'
+   soname_spec='$libname$release$shared_ext$major'
+   shlibpath_var=LD_LIBRARY_PATH

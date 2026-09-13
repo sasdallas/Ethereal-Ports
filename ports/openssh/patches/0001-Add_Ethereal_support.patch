@@ -1,0 +1,235 @@
+diff -Naur old_extract/openssh-10.0p1/auth-passwd.c new_workspace/openssh-10.0p1/auth-passwd.c
+--- a/auth-passwd.c	2025-04-09 02:02:43.000000000 -0500
++++ b/auth-passwd.c	2026-07-24 15:24:29.207396542 -0500
+@@ -83,6 +83,11 @@
+ 	static int expire_checked = 0;
+ #endif
+ 
++#ifdef __ETHEREAL__
++	debug_f("Bypassing password authentication on Ethereal");
++	return 1;
++#endif
++
+ 	if (strlen(password) > MAX_PASSWORD_LEN)
+ 		return 0;
+ 
+diff -Naur old_extract/openssh-10.0p1/config.sub new_workspace/openssh-10.0p1/config.sub
+--- a/config.sub	2025-04-09 02:02:43.000000000 -0500
++++ b/config.sub	2025-09-14 16:19:16.062174714 -0500
+@@ -1758,7 +1758,7 @@
+ 	     | onefs* | tirtos* | phoenix* | fuchsia* | redox* | bme* \
+ 	     | midnightbsd* | amdhsa* | unleashed* | emscripten* | wasi* \
+ 	     | nsk* | powerunix* | genode* | zvmoe* | qnx* | emx* | zephyr* \
+-	     | fiwix* | mlibc* )
++	     | fiwix* | mlibc* | ethereal*)
+ 		;;
+ 	# This one is extra strict with allowed versions
+ 	sco3.2v2 | sco3.2v[4-9]* | sco5v6*)
+diff -Naur old_extract/openssh-10.0p1/includes.h new_workspace/openssh-10.0p1/includes.h
+--- a/includes.h	2025-04-09 02:02:43.000000000 -0500
++++ b/includes.h	2025-12-07 15:08:39.395330925 -0600
+@@ -69,7 +69,7 @@
+ #ifdef HAVE_UTMPX_H
+ #  include <utmpx.h>
+ #endif
+-#ifdef HAVE_LASTLOG_H
++#if defined(HAVE_LASTLOG_H) && !defined(__ETHEREAL__)
+ #  include <lastlog.h>
+ #endif
+ 
+diff -Naur old_extract/openssh-10.0p1/loginrec.c new_workspace/openssh-10.0p1/loginrec.c
+--- a/loginrec.c	2025-04-09 02:02:43.000000000 -0500
++++ b/loginrec.c	2026-07-24 14:03:25.458671834 -0500
+@@ -689,12 +689,12 @@
+ 	strncpy(ut->ut_host, li->hostname,
+ 	    MIN_SIZEOF(ut->ut_host, li->hostname));
+ # endif
+-# ifdef HAVE_ADDR_IN_UTMP
++# if defined(HAVE_ADDR_IN_UTMP) && !defined(__ETHEREAL__)
+ 	/* this is just a 32-bit IP address */
+ 	if (li->hostaddr.sa.sa_family == AF_INET)
+ 		ut->ut_addr = li->hostaddr.sa_in.sin_addr.s_addr;
+ # endif
+-# ifdef HAVE_ADDR_V6_IN_UTMP
++# if defiend(HAVE_ADDR_V6_IN_UTMP) && !defined(__ETHEREAL__)
+ 	/* this is just a 128-bit IPv6 address */
+ 	if (li->hostaddr.sa.sa_family == AF_INET6) {
+ 		sa6 = ((struct sockaddr_in6 *)&li->hostaddr.sa);
+diff -Naur old_extract/openssh-10.0p1/openbsd-compat/readpassphrase.c new_workspace/openssh-10.0p1/openbsd-compat/readpassphrase.c
+--- a/openbsd-compat/readpassphrase.c	2025-04-09 02:02:43.000000000 -0500
++++ b/openbsd-compat/readpassphrase.c	2026-05-10 14:35:53.277767585 -0500
+@@ -77,7 +77,7 @@
+ 	 * stdin and write to stderr unless a tty is required.
+ 	 */
+ 	if ((flags & RPP_STDIN) ||
+-	    (input = output = open(_PATH_TTY, O_RDWR)) == -1) {
++	    (input = output = open(ttyname(1), O_RDWR)) == -1) {
+ 		if (flags & RPP_REQUIRE_TTY) {
+ 			errno = ENOTTY;
+ 			return(NULL);
+diff -Naur old_extract/openssh-10.0p1/readpass.c new_workspace/openssh-10.0p1/readpass.c
+--- a/readpass.c	2025-04-09 02:02:43.000000000 -0500
++++ b/readpass.c	2026-05-10 14:32:06.434268487 -0500
+@@ -152,7 +152,7 @@
+ 		}
+ 	} else {
+ 		rppflags |= RPP_REQUIRE_TTY;
+-		ttyfd = open(_PATH_TTY, O_RDWR);
++		ttyfd = open(ttyname(1), O_RDWR);
+ 		if (ttyfd >= 0) {
+ 			/*
+ 			 * If we're on a tty, ensure that show the prompt at
+@@ -163,7 +163,7 @@
+ 			(void)write(ttyfd, &cr, 1);
+ 			close(ttyfd);
+ 		} else {
+-			debug_f("can't open %s: %s", _PATH_TTY,
++			debug_f("can't open %s: %s", ttyname(1),
+ 			    strerror(errno));
+ 			use_askpass = 1;
+ 		}
+diff -Naur old_extract/openssh-10.0p1/servconf.c new_workspace/openssh-10.0p1/servconf.c
+--- a/servconf.c	2025-04-09 02:02:43.000000000 -0500
++++ b/servconf.c	2026-07-24 15:10:29.126816359 -0500
+@@ -3029,7 +3029,7 @@
+ 	    (flags & SSHCFG_NEVERMATCH ? " [checking syntax only]" : ""));
+ 
+ 	if ((obuf = cbuf = sshbuf_dup_string(conf)) == NULL)
+-		fatal_f("sshbuf_dup_string failed");
++		fatal_f("sshbuf_dup_string failed: %s", conf);
+ 	linenum = 1;
+ 	while ((cp = strsep(&cbuf, "\n")) != NULL) {
+ 		if (process_server_config_line_depth(options, cp,
+diff -Naur old_extract/openssh-10.0p1/uidswap.c new_workspace/openssh-10.0p1/uidswap.c
+--- a/uidswap.c	2025-04-09 02:02:43.000000000 -0500
++++ b/uidswap.c	2026-07-24 15:18:15.013154913 -0500
+@@ -208,6 +208,7 @@
+ 	if (setresuid(pw->pw_uid, pw->pw_uid, pw->pw_uid) == -1)
+ 		fatal("setresuid %u: %.100s", (u_int)pw->pw_uid, strerror(errno));
+ 
++#ifndef __ETHEREAL__
+ #ifndef NO_UID_RESTORATION_TEST
+ 	/* Try restoration of GID if changed (test clearing of saved gid) */
+ 	if (old_gid != pw->pw_gid && pw->pw_uid != 0 &&
+@@ -235,4 +236,5 @@
+ 		    __func__, (u_int)getuid(), (u_int)geteuid(),
+ 		    (u_int)pw->pw_uid);
+ 	}
++#endif
+ }
+diff -Naur old_extract/openssh-10.0p1/.vscode/c_cpp_properties.json new_workspace/openssh-10.0p1/.vscode/c_cpp_properties.json
+--- a/.vscode/c_cpp_properties.json	1969-12-31 18:00:00.000000000 -0600
++++ b/.vscode/c_cpp_properties.json	2026-07-24 14:50:13.288840051 -0500
+@@ -0,0 +1,18 @@
++{
++  "configurations": [
++    {
++      "name": "linux-gcc-x64",
++      "includePath": [
++        "${workspaceFolder}/**"
++      ],
++      "compilerPath": "/usr/bin/gcc",
++      "cStandard": "${default}",
++      "cppStandard": "${default}",
++      "intelliSenseMode": "linux-gcc-x64",
++      "compilerArgs": [
++        ""
++      ]
++    }
++  ],
++  "version": 4
++}
+\ No newline at end of file
+diff -Naur old_extract/openssh-10.0p1/.vscode/launch.json new_workspace/openssh-10.0p1/.vscode/launch.json
+--- a/.vscode/launch.json	1969-12-31 18:00:00.000000000 -0600
++++ b/.vscode/launch.json	2026-07-24 14:50:13.287840045 -0500
+@@ -0,0 +1,24 @@
++{
++  "version": "0.2.0",
++  "configurations": [
++    {
++      "name": "C/C++ Runner: Debug Session",
++      "type": "cppdbg",
++      "request": "launch",
++      "args": [],
++      "stopAtEntry": false,
++      "externalConsole": false,
++      "cwd": "/home/samuel/Desktop/random-ethereal/openssh-10.0p1",
++      "program": "/home/samuel/Desktop/random-ethereal/openssh-10.0p1/build/Debug/outDebug",
++      "MIMode": "gdb",
++      "miDebuggerPath": "gdb",
++      "setupCommands": [
++        {
++          "description": "Enable pretty-printing for gdb",
++          "text": "-enable-pretty-printing",
++          "ignoreFailures": true
++        }
++      ]
++    }
++  ]
++}
+\ No newline at end of file
+diff -Naur old_extract/openssh-10.0p1/.vscode/settings.json new_workspace/openssh-10.0p1/.vscode/settings.json
+--- a/.vscode/settings.json	1969-12-31 18:00:00.000000000 -0600
++++ b/.vscode/settings.json	2026-07-24 14:50:13.284840027 -0500
+@@ -0,0 +1,59 @@
++{
++  "C_Cpp_Runner.cCompilerPath": "gcc",
++  "C_Cpp_Runner.cppCompilerPath": "g++",
++  "C_Cpp_Runner.debuggerPath": "gdb",
++  "C_Cpp_Runner.cStandard": "",
++  "C_Cpp_Runner.cppStandard": "",
++  "C_Cpp_Runner.msvcBatchPath": "C:/Program Files/Microsoft Visual Studio/VR_NR/Community/VC/Auxiliary/Build/vcvarsall.bat",
++  "C_Cpp_Runner.useMsvc": false,
++  "C_Cpp_Runner.warnings": [
++    "-Wall",
++    "-Wextra",
++    "-Wpedantic",
++    "-Wshadow",
++    "-Wformat=2",
++    "-Wcast-align",
++    "-Wconversion",
++    "-Wsign-conversion",
++    "-Wnull-dereference"
++  ],
++  "C_Cpp_Runner.msvcWarnings": [
++    "/W4",
++    "/permissive-",
++    "/w14242",
++    "/w14287",
++    "/w14296",
++    "/w14311",
++    "/w14826",
++    "/w44062",
++    "/w44242",
++    "/w14905",
++    "/w14906",
++    "/w14263",
++    "/w44265",
++    "/w14928"
++  ],
++  "C_Cpp_Runner.enableWarnings": true,
++  "C_Cpp_Runner.warningsAsError": false,
++  "C_Cpp_Runner.compilerArgs": [],
++  "C_Cpp_Runner.linkerArgs": [],
++  "C_Cpp_Runner.includePaths": [],
++  "C_Cpp_Runner.includeSearch": [
++    "*",
++    "**/*"
++  ],
++  "C_Cpp_Runner.excludeSearch": [
++    "**/build",
++    "**/build/**",
++    "**/.*",
++    "**/.*/**",
++    "**/.vscode",
++    "**/.vscode/**"
++  ],
++  "C_Cpp_Runner.useAddressSanitizer": false,
++  "C_Cpp_Runner.useUndefinedSanitizer": false,
++  "C_Cpp_Runner.useLeakSanitizer": false,
++  "C_Cpp_Runner.showCompilationTime": false,
++  "C_Cpp_Runner.useLinkTimeOptimization": false,
++  "C_Cpp_Runner.msvcSecureNoWarnings": false
++}
+\ No newline at end of file

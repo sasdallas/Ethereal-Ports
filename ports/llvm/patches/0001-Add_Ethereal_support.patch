@@ -1,0 +1,92 @@
+diff -Naur old_extract/llvm-project-20.1.8.src/llvm/include/llvm/ADT/bit.h new_workspace/llvm-project-20.1.8.src/llvm/include/llvm/ADT/bit.h
+--- a/llvm/include/llvm/ADT/bit.h	2025-07-08 18:06:32.000000000 -0500
++++ b/llvm/include/llvm/ADT/bit.h	2026-06-18 14:01:25.847797262 -0500
+@@ -29,7 +29,7 @@
+ 
+ #if defined(__linux__) || defined(__GNU__) || defined(__HAIKU__) ||            \
+     defined(__Fuchsia__) || defined(__EMSCRIPTEN__) || defined(__NetBSD__) ||  \
+-    defined(__OpenBSD__) || defined(__DragonFly__)
++    defined(__OpenBSD__) || defined(__DragonFly__) || defined(__ETHEREAL__)
+ #include <endian.h>
+ #elif defined(_AIX)
+ #include <sys/machine.h>
+diff -Naur old_extract/llvm-project-20.1.8.src/llvm/lib/Support/Unix/Path.inc new_workspace/llvm-project-20.1.8.src/llvm/lib/Support/Unix/Path.inc
+--- a/llvm/lib/Support/Unix/Path.inc	2025-07-08 18:06:32.000000000 -0500
++++ b/llvm/lib/Support/Unix/Path.inc	2026-06-18 14:03:40.202314935 -0500
+@@ -107,7 +107,7 @@
+ #endif
+ 
+ #if defined(__NetBSD__) || defined(__DragonFly__) || defined(__GNU__) ||       \
+-    defined(__MVS__)
++    defined(__MVS__) || defined(__ETHEREAL__)
+ #define STATVFS_F_FLAG(vfs) (vfs).f_flag
+ #else
+ #define STATVFS_F_FLAG(vfs) (vfs).f_flags
+@@ -245,6 +245,10 @@
+   // If we don't have procfs mounted, fall back to argv[0]
+   if (getprogpath(exe_path, argv0) != NULL)
+     return exe_path;
++
++#elif defined(__ETHEREAL__)
++	fprintf(stderr, "getMainExecutable is not implemented\n");
++	return "";
+ #elif defined(__linux__) || defined(__CYGWIN__) || defined(__gnu_hurd__)
+   char exe_path[PATH_MAX];
+   const char *aPath = "/proc/self/exe";
+@@ -506,6 +510,8 @@
+ #elif defined(__HAIKU__)
+   // Haiku doesn't expose this information.
+   return false;
++#elif defined(__ETHEREAL__)
++  return false;
+ #elif defined(__sun)
+   // statvfs::f_basetype contains a null-terminated FSType name of the mounted
+   // target
+diff -Naur old_extract/llvm-project-20.1.8.src/llvm/lib/Support/Unix/Program.inc new_workspace/llvm-project-20.1.8.src/llvm/lib/Support/Unix/Program.inc
+--- a/llvm/lib/Support/Unix/Program.inc	2025-07-08 18:06:32.000000000 -0500
++++ b/llvm/lib/Support/Unix/Program.inc	2026-06-18 14:05:18.701250033 -0500
+@@ -342,7 +342,7 @@
+ namespace llvm {
+ namespace sys {
+ 
+-#if defined(_AIX)
++#if defined(_AIX) || defined(__ETHEREAL__)
+ static pid_t(wait4)(pid_t pid, int *status, int options, struct rusage *usage);
+ #elif !defined(__Fuchsia__)
+ using ::wait4;
+@@ -383,6 +383,14 @@
+   // would cause the call here to fail with ECHILD).
+   return ::wait4(pid, status, options & ~WNOHANG, usage);
+ }
++#elif defined(__ETHEREAL__)
++#ifndef _ALL_SOURCE
++extern "C" pid_t(wait4)(pid_t pid, int *status, int options, struct rusage *usage);
++#endif
++pid_t(llvm::sys::wait4)(pid_t pid, int *status, int options, struct rusage *usage) {
++	memset(usage, 0, sizeof(struct rusage));
++	return waitpid(pid, status, options);
++}
+ #endif
+ 
+ ProcessInfo llvm::sys::Wait(const ProcessInfo &PI,
+@@ -468,7 +476,7 @@
+     std::chrono::microseconds UserT = toDuration(Info.ru_utime);
+     std::chrono::microseconds KernelT = toDuration(Info.ru_stime);
+     uint64_t PeakMemory = 0;
+-#if !defined(__HAIKU__) && !defined(__MVS__)
++#if !defined(__HAIKU__) && !defined(__MVS__) && !defined(__ETHEREAL__)
+     PeakMemory = static_cast<uint64_t>(Info.ru_maxrss);
+ #endif
+     *ProcStat = ProcessStatistics{UserT + KernelT, UserT, PeakMemory};
+diff -Naur old_extract/llvm-project-20.1.8.src/llvm/lib/Support/Unix/Signals.inc new_workspace/llvm-project-20.1.8.src/llvm/lib/Support/Unix/Signals.inc
+--- a/llvm/lib/Support/Unix/Signals.inc	2025-07-08 18:06:32.000000000 -0500
++++ b/llvm/lib/Support/Unix/Signals.inc	2026-06-18 14:05:37.373151201 -0500
+@@ -817,7 +817,7 @@
+   OS << "Stack dump without symbol names (ensure you have llvm-symbolizer in "
+         "your PATH or set the environment var `LLVM_SYMBOLIZER_PATH` to point "
+         "to it):\n";
+-#if HAVE_DLOPEN && !defined(_AIX)
++#if HAVE_DLOPEN && !defined(_AIX) && !defined(__ETHEREAL__)
+   int width = 0;
+   for (int i = 0; i < depth; ++i) {
+     Dl_info dlinfo;

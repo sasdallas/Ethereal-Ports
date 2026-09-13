@@ -1,0 +1,36 @@
+diff -Naur old_extract/make-4.4.1/build-aux/config.sub new_workspace/make-4.4.1/build-aux/config.sub
+--- a/build-aux/config.sub	2023-02-18 09:38:13.000000000 -0600
++++ b/build-aux/config.sub	2025-06-27 21:39:55.254159736 -0500
+@@ -1758,7 +1758,7 @@
+ 	     | onefs* | tirtos* | phoenix* | fuchsia* | redox* | bme* \
+ 	     | midnightbsd* | amdhsa* | unleashed* | emscripten* | wasi* \
+ 	     | nsk* | powerunix* | genode* | zvmoe* | qnx* | emx* | zephyr* \
+-	     | fiwix* | mlibc* )
++	     | fiwix* | mlibc* | ethereal* )
+ 		;;
+ 	# This one is extra strict with allowed versions
+ 	sco3.2v2 | sco3.2v[4-9]* | sco5v6*)
+diff -Naur old_extract/make-4.4.1/src/arscan.c new_workspace/make-4.4.1/src/arscan.c
+--- a/src/arscan.c	2023-01-08 09:45:38.000000000 -0600
++++ b/src/arscan.c	2025-06-27 21:40:16.125700722 -0500
+@@ -331,7 +331,7 @@
+ #endif
+ 
+ #ifndef WINDOWS32
+-# if !defined (__ANDROID__) && !defined (__BEOS__) && !defined(MK_OS_ZOS)
++# if !defined (__ANDROID__) && !defined (__BEOS__) && !defined(MK_OS_ZOS) && !defined(__ETHEREAL__)
+ #  include <ar.h>
+ # else
+    /* These platforms don't have <ar.h> but have archives in the same format
+diff -Naur old_extract/make-4.4.1/src/makeint.h new_workspace/make-4.4.1/src/makeint.h
+--- a/src/makeint.h	2023-02-19 07:51:55.000000000 -0600
++++ b/src/makeint.h	2025-06-27 21:41:47.470906981 -0500
+@@ -687,7 +687,7 @@
+ # endif
+ 
+ # ifdef  HAVE_GETCWD
+-#  if !defined(VMS) && !defined(__DECC)
++#  if !defined(VMS) && !defined(__DECC) && !defined(__ETHEREAL__)
+ char *getcwd (void);
+ #  endif
+ # else

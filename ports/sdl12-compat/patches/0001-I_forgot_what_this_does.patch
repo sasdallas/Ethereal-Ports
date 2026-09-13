@@ -1,0 +1,14 @@
+diff -Naur old_extract/sdl12-compat-release-1.2.68/src/SDL20_include_wrapper.h new_workspace/sdl12-compat-release-1.2.68/src/SDL20_include_wrapper.h
+--- a/src/SDL20_include_wrapper.h	2023-09-26 12:43:48.000000000 -0500
++++ b/src/SDL20_include_wrapper.h	2025-09-21 18:17:51.805529196 -0500
+@@ -913,8 +913,8 @@
+ #endif
+ 
+ #define __BUILDING_SDL12_COMPAT__ 1
+-#include "SDL.h"
+-#include "SDL_syswm.h"  /* includes windows.h or os2.h */
++#include <SDL.h>
++#include <SDL_syswm.h>  /* includes windows.h or os2.h */
+ 
+ /* Headers from SDL2 >= 2.0.7 needed for SDL_AudioStream. */
+ #if !SDL_VERSION_ATLEAST(2,0,7)

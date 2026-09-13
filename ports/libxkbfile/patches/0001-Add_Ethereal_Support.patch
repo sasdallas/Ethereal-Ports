@@ -1,0 +1,42 @@
+diff -Naur old_extract/libxkbfile-1.1.1/config.sub new_workspace/libxkbfile-1.1.1/config.sub
+--- a/config.sub	2022-10-17 21:04:11.000000000 -0500
++++ b/config.sub	2026-06-03 13:57:32.110426941 -0500
+@@ -1731,7 +1731,7 @@
+ 	     | clix* | riscos* | uniplus* | iris* | isc* | rtu* | xenix* \
+ 	     | mirbsd* | netbsd* | dicos* | openedition* | ose* \
+ 	     | bitrig* | openbsd* | secbsd* | solidbsd* | libertybsd* | os108* \
+-	     | ekkobsd* | freebsd* | riscix* | lynxos* | os400* \
++	     | ekkobsd* | freebsd* | ethereal* | riscix* | lynxos* | os400* \
+ 	     | bosx* | nextstep* | cxux* | aout* | elf* | oabi* \
+ 	     | ptx* | coff* | ecoff* | winnt* | domain* | vsta* \
+ 	     | udi* | lites* | ieee* | go32* | aux* | hcos* \
+diff -Naur old_extract/libxkbfile-1.1.1/configure new_workspace/libxkbfile-1.1.1/configure
+--- a/configure	2022-10-17 21:04:10.000000000 -0500
++++ b/configure	2026-06-03 13:57:28.777085562 -0500
+@@ -5915,6 +5915,10 @@
+   lt_cv_deplibs_check_method=pass_all
+   ;;
+ 
++ethereal*)
++      lt_cv_deplibs_check_method=pass_all
++      ;;
++
+ hpux10.20* | hpux11*)
+   lt_cv_file_magic_cmd=$FILECMD
+   case $host_cpu in
+@@ -11357,6 +11361,15 @@
+   version_type=linux # correct to gnu/linux during the next big refactor
+   need_lib_prefix=no
+   need_version=no
++  library_names_spec='$libname$release$shared_ext$versuffix $libname$release$shared_ext$major $libname$shared_ext'
++  soname_spec='$libname$release$shared_ext$major'
++  shlibpath_var=LD_LIBRARY_PATH
++  ;;
++
++ethereal*)
++  version_type=linux # correct to gnu/linux during the next big refactor
++  need_lib_prefix=no
++  need_version=no
+   library_names_spec='$libname$release$shared_ext$versuffix $libname$release$shared_ext$major $libname$shared_ext'
+   soname_spec='$libname$release$shared_ext$major'
+   shlibpath_var=LD_LIBRARY_PATH

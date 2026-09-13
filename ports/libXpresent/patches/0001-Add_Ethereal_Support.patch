@@ -1,0 +1,41 @@
+diff -Naur old_extract/libXpresent-1.0.2/config.sub new_workspace/libXpresent-1.0.2/config.sub
+--- a/config.sub	2025-09-07 20:06:39.000000000 -0500
++++ b/config.sub	2026-06-03 13:58:27.624965589 -0500
+@@ -2006,6 +2006,7 @@
+ 	| es* \
+ 	| fiwix* \
+ 	| freebsd* \
++	| ethereal* \
+ 	| fuchsia* \
+ 	| genix* \
+ 	| genode* \
+diff -Naur old_extract/libXpresent-1.0.2/configure new_workspace/libXpresent-1.0.2/configure
+--- a/configure	2025-09-07 20:06:38.000000000 -0500
++++ b/configure	2026-06-03 13:58:25.371791695 -0500
+@@ -6218,6 +6218,10 @@
+   lt_cv_deplibs_check_method=pass_all
+   ;;
+ 
++ethereal*)
++      lt_cv_deplibs_check_method=pass_all
++      ;;
++
+ hpux10.20* | hpux11*)
+   lt_cv_file_magic_cmd=$FILECMD
+   case $host_cpu in
+@@ -11856,6 +11860,15 @@
+   version_type=linux # correct to gnu/linux during the next big refactor
+   need_lib_prefix=no
+   need_version=no
++  library_names_spec='$libname$release$shared_ext$versuffix $libname$release$shared_ext$major $libname$shared_ext'
++  soname_spec='$libname$release$shared_ext$major'
++  shlibpath_var=LD_LIBRARY_PATH
++  ;;
++
++ethereal*)
++  version_type=linux # correct to gnu/linux during the next big refactor
++  need_lib_prefix=no
++  need_version=no
+   library_names_spec='$libname$release$shared_ext$versuffix $libname$release$shared_ext$major $libname$shared_ext'
+   soname_spec='$libname$release$shared_ext$major'
+   shlibpath_var=LD_LIBRARY_PATH

@@ -1,0 +1,24 @@
+diff -Naur old_extract/lynx2.9.2/config.sub new_workspace/lynx2.9.2/config.sub
+--- a/config.sub	2023-12-27 08:41:27.000000000 -0600
++++ b/config.sub	2026-07-25 14:05:28.155429229 -0500
+@@ -1750,7 +1750,7 @@
+ 	     | clix* | riscos* | uniplus* | iris* | isc* | rtu* | xenix* \
+ 	     | mirbsd* | netbsd* | dicos* | openedition* | ose* \
+ 	     | bitrig* | openbsd* | secbsd* | solidbsd* | libertybsd* | os108* \
+-	     | ekkobsd* | freebsd* | riscix* | lynxos* | os400* \
++	     | ekkobsd* | freebsd* | ethereal* | riscix* | lynxos* | os400* \
+ 	     | bosx* | nextstep* | cxux* | oabi* \
+ 	     | ptx* | ecoff* | winnt* | domain* | vsta* \
+ 	     | udi* | lites* | ieee* | go32* | aux* | hcos* \
+diff -Naur old_extract/lynx2.9.2/src/LYUtils.c new_workspace/lynx2.9.2/src/LYUtils.c
+--- a/src/LYUtils.c	2024-01-15 11:10:52.000000000 -0600
++++ b/src/LYUtils.c	2026-07-25 14:06:27.760026046 -0500
+@@ -101,7 +101,7 @@
+ #include <lib$routines.h>
+ #endif /* VMS */
+ 
+-#ifdef HAVE_UTMP
++#if defined(HAVE_UTMP) || defined(__ETHEREAL__)
+ #include <pwd.h>
+ #ifdef UTMPX_FOR_UTMP
+ #include <utmpx.h>

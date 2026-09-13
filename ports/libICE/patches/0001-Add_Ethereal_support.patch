@@ -1,0 +1,42 @@
+diff -Naur old_extract/libICE-1.1.2/config.sub new_workspace/libICE-1.1.2/config.sub
+--- a/config.sub	2024-12-13 15:40:34.000000000 -0600
++++ b/config.sub	2026-06-23 15:39:19.404698632 -0500
+@@ -1750,7 +1750,7 @@
+ 	     | clix* | riscos* | uniplus* | iris* | isc* | rtu* | xenix* \
+ 	     | mirbsd* | netbsd* | dicos* | openedition* | ose* \
+ 	     | bitrig* | openbsd* | secbsd* | solidbsd* | libertybsd* | os108* \
+-	     | ekkobsd* | freebsd* | riscix* | lynxos* | os400* \
++	     | ekkobsd* | freebsd* | ethereal* | riscix* | lynxos* | os400* \
+ 	     | bosx* | nextstep* | cxux* | oabi* \
+ 	     | ptx* | ecoff* | winnt* | domain* | vsta* \
+ 	     | udi* | lites* | ieee* | go32* | aux* | hcos* \
+diff -Naur old_extract/libICE-1.1.2/configure new_workspace/libICE-1.1.2/configure
+--- a/configure	2024-12-13 15:40:33.000000000 -0600
++++ b/configure	2026-06-23 15:39:21.719126942 -0500
+@@ -6524,6 +6524,10 @@
+   lt_cv_deplibs_check_method=pass_all
+   ;;
+ 
++ethereal*)
++      lt_cv_deplibs_check_method=pass_all
++      ;;
++
+ hpux10.20* | hpux11*)
+   lt_cv_file_magic_cmd=$FILECMD
+   case $host_cpu in
+@@ -12132,6 +12136,15 @@
+   version_type=linux # correct to gnu/linux during the next big refactor
+   need_lib_prefix=no
+   need_version=no
++  library_names_spec='$libname$release$shared_ext$versuffix $libname$release$shared_ext$major $libname$shared_ext'
++  soname_spec='$libname$release$shared_ext$major'
++  shlibpath_var=LD_LIBRARY_PATH
++  ;;
++
++ethereal*)
++  version_type=linux # correct to gnu/linux during the next big refactor
++  need_lib_prefix=no
++  need_version=no
+   library_names_spec='$libname$release$shared_ext$versuffix $libname$release$shared_ext$major $libname$shared_ext'
+   soname_spec='$libname$release$shared_ext$major'
+   shlibpath_var=LD_LIBRARY_PATH

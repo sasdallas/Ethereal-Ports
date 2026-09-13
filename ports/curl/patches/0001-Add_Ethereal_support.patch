@@ -1,0 +1,69 @@
+diff -Naur old_extract/curl-8.11.1/CMakeLists.txt new_workspace/curl-8.11.1/CMakeLists.txt
+--- a/CMakeLists.txt	2024-12-11 01:08:12.000000000 -0600
++++ b/CMakeLists.txt	2025-10-07 20:15:36.717089859 -0500
+@@ -500,6 +500,10 @@
+   set(HAVE_SENDMMSG 0)
+ endif()
+ 
++if (ETHEREAL)
++  set(HAVE_EVENTFD 0)
++endif()
++
+ if(ENABLE_THREADED_RESOLVER)
+   if(WIN32)
+     set(USE_THREADS_WIN32 ON)
+diff -Naur old_extract/curl-8.11.1/config.sub new_workspace/curl-8.11.1/config.sub
+--- a/config.sub	2024-12-11 01:08:12.000000000 -0600
++++ b/config.sub	2025-07-25 11:38:30.349361538 -0500
+@@ -1754,7 +1754,7 @@
+ 	     | onefs* | tirtos* | phoenix* | fuchsia* | redox* | bme* \
+ 	     | midnightbsd* | amdhsa* | unleashed* | emscripten* | wasi* \
+ 	     | nsk* | powerunix* | genode* | zvmoe* | qnx* | emx* | zephyr* \
+-	     | fiwix* )
++	     | fiwix* | ethereal*)
+ 		;;
+ 	# This one is extra strict with allowed versions
+ 	sco3.2v2 | sco3.2v[4-9]* | sco5v6*)
+diff -Naur old_extract/curl-8.11.1/configure new_workspace/curl-8.11.1/configure
+--- a/configure	2024-12-11 01:08:12.000000000 -0600
++++ b/configure	2026-06-28 16:15:48.305868012 -0500
+@@ -9790,6 +9790,10 @@
+   lt_cv_file_magic_cmd='func_win32_libid'
+   ;;
+ 
++ethereal*)
++  lt_cv_deplibs_check_method=pass_all
++  ;;
++
+ mingw* | pw32*)
+   # Base MSYS/MinGW do not provide the 'file' command needed by
+   # func_win32_libid shell function, so use a weaker test based on 'objdump',
+@@ -15691,6 +15695,16 @@
+   shlibpath_var=LD_LIBRARY_PATH
+   ;;
+ 
++ethereal*)
++  version_type=linux # correct to gnu/linux during the next big refactor
++  need_lib_prefix=no
++  need_version=no
++  library_names_spec='$libname$release$shared_ext$versuffix $libname$release$shared_ext$major $libname$shared_ext'
++  soname_spec='$libname$release$shared_ext$major'
++  dynamic_linker="$host_os ld.so"
++  shlibpath_var=LD_LIBRARY_PATH
++  ;;
++
+ freebsd* | dragonfly* | midnightbsd*)
+   # DragonFly does not have aout.  When/if they implement a new
+   # versioning mechanism, adjust this.
+diff -Naur old_extract/curl-8.11.1/lib/socketpair.h new_workspace/curl-8.11.1/lib/socketpair.h
+--- a/lib/socketpair.h	2024-12-11 01:08:12.000000000 -0600
++++ b/lib/socketpair.h	2025-10-19 12:06:03.312877294 -0500
+@@ -34,7 +34,7 @@
+      defined(__mips64) || \
+      defined(__sparc64__) || \
+      defined(__riscv_64e) || \
+-     defined(__s390x__))
++     defined(__s390x__)) && !defined(__ETHEREAL__)
+ 
+ /* Use eventfd only with 64-bit CPU architectures because eventfd has a
+  * stringent rule of requiring the 8-byte buffer when calling read(2) and

@@ -1,0 +1,116 @@
+diff -Naur old_extract/Python-3.14.6/config.sub new_workspace/Python-3.14.6/config.sub
+--- a/config.sub	2026-06-10 05:03:53.000000000 -0500
++++ b/config.sub	2026-07-24 18:41:19.163620908 -0500
+@@ -1769,7 +1769,7 @@
+ 	     | onefs* | tirtos* | phoenix* | fuchsia* | redox* | bme* \
+ 	     | midnightbsd* | amdhsa* | unleashed* | emscripten* | wasi* \
+ 	     | nsk* | powerunix* | genode* | zvmoe* | qnx* | emx* | zephyr* \
+-	     | fiwix* | mlibc* | cos* | mbr* | ironclad* )
++	     | fiwix* | mlibc* | cos* | mbr* | ironclad* | ethereal*)
+ 		;;
+ 	# This one is extra strict with allowed versions
+ 	sco3.2v2 | sco3.2v[4-9]* | sco5v6*)
+diff -Naur old_extract/Python-3.14.6/configure new_workspace/Python-3.14.6/configure
+--- a/configure	2026-06-10 05:03:53.000000000 -0500
++++ b/configure	2026-07-24 18:49:42.756202235 -0500
+@@ -4130,6 +4130,9 @@
+ 	*-*-wasi*)
+ 	    ac_sys_system=WASI
+ 	    ;;
++	*-*-ethereal*)
++            ac_sys_system=ethereal
++            ;;
+ 	*)
+ 		# for now, limit cross builds to known configurations
+ 		MACHDEP="unknown"
+@@ -4594,6 +4597,9 @@
+ 	*-*-cygwin*)
+ 		_host_ident=
+ 		;;
++	*-*-ethereal*)
++		_host_ident=$host_cpu
++		;;
+ 	*-apple-ios*)
+ 		_host_os=`echo $host | cut -d '-' -f3`
+ 		_host_device=`echo $host | cut -d '-' -f4`
+@@ -7735,7 +7741,7 @@
+         PY3LIBRARY=libpython3.so
+       fi
+       ;;
+-    Linux*|GNU*|NetBSD*|FreeBSD*|DragonFly*|OpenBSD*|VxWorks*)
++    Linux*|GNU*|NetBSD*|FreeBSD*|DragonFly*|OpenBSD*|VxWorks*|ethereal*)
+       LDLIBRARY='libpython$(LDVERSION).so'
+       BLDLIBRARY='-L. -lpython$(LDVERSION)'
+       RUNSHARED=LD_LIBRARY_PATH=`pwd`${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
+@@ -13685,7 +13691,7 @@
+ 	Emscripten*|WASI*)
+ 		LDSHARED='$(CC) -shared'
+ 		LDCXXSHARED='$(CXX) -shared';;
+-	Linux*|GNU*|QNX*|VxWorks*|Haiku*)
++	Linux*|GNU*|QNX*|VxWorks*|Haiku*|ethereal*)
+ 		LDSHARED='$(CC) -shared'
+ 		LDCXXSHARED='$(CXX) -shared';;
+ 	FreeBSD*)
+@@ -13770,7 +13776,7 @@
+ 		 then CCSHARED="-fPIC";
+ 		 else CCSHARED="+z";
+ 		 fi;;
+-	Linux*|GNU*) CCSHARED="-fPIC";;
++	Linux*|GNU*|ethereal*) CCSHARED="-fPIC";;
+ 	Emscripten*|WASI*)
+ 		if test "x$enable_wasm_dynamic_linking" = xyes
+ then :
+@@ -13853,6 +13859,9 @@
+ 		    fi
+         fi
+ 		;;
++	ethereal*)
++		LINKFORSHARED="-export-dynamic"
++		;;
+ 	CYGWIN*)
+ 		if test $enable_shared = "no"
+ 		then
+@@ -25852,6 +25861,7 @@
+ 
+ case $ac_sys_system in
+ Darwin) ;;
++ethereal) ;;
+ *) LIBM=-lm
+ esac
+ { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for --with-libm=STRING" >&5
+diff -Naur old_extract/Python-3.14.6/Objects/mimalloc/prim/unix/prim.c new_workspace/Python-3.14.6/Objects/mimalloc/prim/unix/prim.c
+--- a/Objects/mimalloc/prim/unix/prim.c	2026-06-10 05:03:53.000000000 -0500
++++ b/Objects/mimalloc/prim/unix/prim.c	2026-07-24 18:40:49.732398849 -0500
+@@ -153,6 +153,7 @@
+ // mmap
+ //---------------------------------------------
+ 
++#ifndef __ETHEREAL__
+ static int unix_madvise(void* addr, size_t size, int advice) {
+   #if defined(__sun)
+   return madvise((caddr_t)addr, size, advice);  // Solaris needs cast (issue #520)
+@@ -160,6 +161,12 @@
+   return madvise(addr, size, advice);
+   #endif
+ }
++#else
++#define MADV_DONTNEED 0
++static int unix_madvise(void *addr, size_t size, int advice) {
++	return 0;
++}
++#endif
+ 
+ static void* unix_mmap_prim(void* addr, size_t size, size_t try_alignment, int protect_flags, int flags, int fd) {
+   MI_UNUSED(try_alignment);
+diff -Naur old_extract/Python-3.14.6/Python/fileutils.c new_workspace/Python-3.14.6/Python/fileutils.c
+--- a/Python/fileutils.c	2026-06-10 05:03:53.000000000 -0500
++++ b/Python/fileutils.c	2026-07-24 18:57:13.369447302 -0500
+@@ -1498,7 +1498,7 @@
+ 
+ #else
+ 
+-#if defined(HAVE_SYS_IOCTL_H) && defined(FIOCLEX) && defined(FIONCLEX)
++#if defined(HAVE_SYS_IOCTL_H) && defined(FIOCLEX) && defined(FIONCLEX) && !defined(__ETHEREAL__)
+     if (raise != 0 && _Py_atomic_load_int_relaxed(&ioctl_works) != 0) {
+         /* fast-path: ioctl() only requires one syscall */
+         /* caveat: raise=0 is an indicator that we must be async-signal-safe

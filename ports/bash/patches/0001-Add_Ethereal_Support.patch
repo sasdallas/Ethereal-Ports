@@ -1,0 +1,79 @@
+diff -Naur old_extract/bash-5.2/examples/loadables/finfo.c new_workspace/bash-5.2/examples/loadables/finfo.c
+--- a/examples/loadables/finfo.c	2020-06-29 09:56:32.000000000 -0500
++++ b/examples/loadables/finfo.c	2026-07-24 17:38:14.801727482 -0500
+@@ -33,6 +33,26 @@
+ #endif
+ #ifdef MAJOR_IN_SYSMACROS
+ #  include <sys/sysmacros.h>
++#elif defined(__ETHEREAL__)
++static unsigned int __mlibc_dev_major(unsigned long long int __dev) {
++	return ((__dev >> 8) & 0xfff) | ((unsigned int)(__dev >> 32) & ~0xfff);
++}
++
++static unsigned int __mlibc_dev_minor(unsigned long long int __dev) {
++	return (__dev & 0xff) | ((unsigned int)(__dev >> 12) & ~0xff);
++}
++
++static unsigned long long int __mlibc_dev_makedev(unsigned int __major, unsigned int __minor) {
++	return (
++	    (__minor & 0xff) | ((__major & 0xfff) << 8)
++	    | (((unsigned long long int)(__minor & ~0xff)) << 12)
++	    | (((unsigned long long int)(__major & ~0xfff)) << 32)
++	);
++}
++
++#define major(dev) __mlibc_dev_major(dev)
++#define minor(dev) __mlibc_dev_minor(dev)
++#define makedev(major, minor) __mlibc_dev_makedev(major, minor)
+ #endif
+ #include "posixstat.h"
+ #include <stdio.h>
+diff -Naur old_extract/bash-5.2/externs.h new_workspace/bash-5.2/externs.h
+--- a/externs.h	2022-07-05 10:08:50.000000000 -0500
++++ b/externs.h	2026-07-24 17:37:55.316239933 -0500
+@@ -292,7 +292,7 @@
+ #endif /* !HAVE_GETDTABLESIZE */
+ 
+ #if !defined (HAVE_GETHOSTNAME)
+-extern int gethostname PARAMS((char *, int));
++extern int gethostname PARAMS((char *, size_t));
+ #endif /* !HAVE_GETHOSTNAME */
+ 
+ extern int getmaxgroups PARAMS((void));
+diff -Naur old_extract/bash-5.2/subst.c new_workspace/bash-5.2/subst.c
+--- a/subst.c	2022-08-31 16:36:46.000000000 -0500
++++ b/subst.c	2026-07-24 17:37:55.317315256 -0500
+@@ -32,6 +32,7 @@
+ #endif
+ #include <signal.h>
+ #include <errno.h>
++#include <limits.h>
+ 
+ #if defined (HAVE_UNISTD_H)
+ #  include <unistd.h>
+diff -Naur old_extract/bash-5.2/support/config.sub new_workspace/bash-5.2/support/config.sub
+--- a/support/config.sub	2022-01-11 13:38:29.000000000 -0600
++++ b/support/config.sub	2026-07-24 17:37:55.317617234 -0500
+@@ -1736,7 +1736,7 @@
+ 	     | clix* | riscos* | uniplus* | iris* | isc* | rtu* | xenix* \
+ 	     | mirbsd* | netbsd* | dicos* | openedition* | ose* \
+ 	     | bitrig* | openbsd* | secbsd* | solidbsd* | libertybsd* | os108* \
+-	     | ekkobsd* | freebsd* | riscix* | lynxos* | os400* \
++	     | ekkobsd* | freebsd* | ethereal* | riscix* | lynxos* | os400* \
+ 	     | bosx* | nextstep* | cxux* | aout* | elf* | oabi* \
+ 	     | ptx* | coff* | ecoff* | winnt* | domain* | vsta* \
+ 	     | udi* | lites* | ieee* | go32* | aux* | hcos* \
+diff -Naur old_extract/bash-5.2/support/shobj-conf new_workspace/bash-5.2/support/shobj-conf
+--- a/support/shobj-conf	2021-12-03 09:54:46.000000000 -0600
++++ b/support/shobj-conf	2026-07-24 17:37:55.317770743 -0500
+@@ -79,6 +79,10 @@
+ 	SHOBJ_LDFLAGS='-shared -bglobalized -unres_symbols ignore'
+ 	;;
+ 
++ethereal*-*gcc*)
++	SHOBJ_CFLAGS=-fpic
++	;;
++
+ sunos4*-*gcc*)
+ 	SHOBJ_CFLAGS=-fpic
+ 	SHOBJ_LD=/usr/bin/ld

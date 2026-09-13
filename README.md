@@ -29,3 +29,9 @@ If a dependency is needed it will be automatically built.
 
 If you need to rebuild a port for whatever reason, use the `-f` flag to remove the build directory.
 
+## Credits
+
+Almost all of my ports were sourced from the following sources thanks to their amazing patches:
+
+- banan-os (available [here](https://github.com/Bananymous/banan-os))
+- Astral (available [here](https://github.com/Mathewnd/Astral) - especially thanks for his Mesa patches)

@@ -1,0 +1,41 @@
+diff -Naur old_extract/libXpm-3.5.19/config.sub new_workspace/libXpm-3.5.19/config.sub
+--- a/config.sub	2026-04-21 08:09:22.000000000 -0500
++++ b/config.sub	2026-06-23 16:02:00.154842332 -0500
+@@ -2012,6 +2012,7 @@
+ 	| es* \
+ 	| fiwix* \
+ 	| freebsd* \
++	| ethereal* \
+ 	| fuchsia* \
+ 	| genix* \
+ 	| genode* \
+diff -Naur old_extract/libXpm-3.5.19/configure new_workspace/libXpm-3.5.19/configure
+--- a/configure	2026-04-21 08:09:22.000000000 -0500
++++ b/configure	2026-06-23 16:02:00.195213001 -0500
+@@ -6257,6 +6257,10 @@
+   lt_cv_deplibs_check_method=pass_all
+   ;;
+ 
++ethereal*)
++      lt_cv_deplibs_check_method=pass_all
++      ;;
++
+ hpux10.20* | hpux11*)
+   lt_cv_file_magic_cmd=$FILECMD
+   case $host_cpu in
+@@ -11895,6 +11899,15 @@
+   version_type=linux # correct to gnu/linux during the next big refactor
+   need_lib_prefix=no
+   need_version=no
++  library_names_spec='$libname$release$shared_ext$versuffix $libname$release$shared_ext$major $libname$shared_ext'
++  soname_spec='$libname$release$shared_ext$major'
++  shlibpath_var=LD_LIBRARY_PATH
++  ;;
++
++ethereal*)
++  version_type=linux # correct to gnu/linux during the next big refactor
++  need_lib_prefix=no
++  need_version=no
+   library_names_spec='$libname$release$shared_ext$versuffix $libname$release$shared_ext$major $libname$shared_ext'
+   soname_spec='$libname$release$shared_ext$major'
+   shlibpath_var=LD_LIBRARY_PATH

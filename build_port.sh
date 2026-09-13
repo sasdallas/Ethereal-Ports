@@ -23,13 +23,26 @@ set -eu
 FORCE=0
 BUILD_DEPS=1
 
-while getopts ":f" opt; do
+declare -A OPTIONS
+
+while getopts ":fdo:" opt; do
 	case "$opt" in
 		f)
 			FORCE=1
 			;;
 		d)
 			BUILD_DEPS=0
+			;;
+		o)
+			if [[ "$OPTARG" != *=* ]]; then
+				echo "Invalid -o argument '$OPTARG'. Expected key=value."
+				exit 1
+			fi
+
+			key=${OPTARG%%=*}
+			value=${OPTARG#*=}
+
+			OPTIONS["$key"]="$value"
 			;;
 		?)
 			echo "Usage: build_port.sh [-f] [-d] [port name]"
@@ -47,10 +60,52 @@ fi
 
 PORT=$1
 
-if ! [ -d $PORT ]; then
+if ! [ -d ports/$PORT ]; then
 	echo "Port $PORT does not exist"
 	exit 1
 fi
+
+# Setup helper environs
+MESON_CROSS=$(realpath ethereal-meson.txt)
+CMAKE_CROSS=$(realpath ethereal-cmake.txt)
+PORT_BUILD_DIR=$(realpath build/)
+
+
+# get_option helper
+get_option() {
+	local key="$1"
+	local default="${2-}"
+	local value="${OPTIONS[$key]:-$default}"
+
+	case "${value^^}" in
+		TRUE|YES|ON|1)
+			echo true
+			;;
+		FALSE|NO|OFF|0)
+			echo false
+			;;
+		NULL|NONE)
+			echo ""
+			;;
+		*)
+			echo "$value"
+			;;
+	esac
+}
+
+get_bool_option() {
+	local key="$1"
+	local value="${OPTIONS[$key]:-FALSE}"
+
+	case "${value^^}" in
+		TRUE|YES|ON|1)
+			return 0
+			;;
+		*)
+			return 1
+			;;
+	esac
+}
 
 # =================================================================
 # PRETTY PRINTERS
@@ -122,6 +177,7 @@ is_built() {
 
 build_dependencies() {
 	set +u
+	echo "Building dependencies... $DEPENDS"
 	if ! [ -n "$DEPENDS" ]; then
 		return
 	fi
@@ -165,7 +221,7 @@ fetch() {
 				info "Build directory $BUILD_DIR already exists, assuming port is built."
 				info "To rebuild port please delete dir."
 				popd > /dev/null
-				exit 0
+				exit 1
 			fi
 		fi
 
@@ -173,6 +229,7 @@ fetch() {
 
 		git clone "$GIT_URL" "$BUILD_DIR"
 		pushd $BUILD_DIR > /dev/null
+		git fetch origin
 		git checkout $GIT_COMMIT
 		popd > /dev/null # will get pushed into later
 	elif [ -n "$TARBALL_URL" ]; then
@@ -180,7 +237,7 @@ fetch() {
 
 		# For tarballs the standard format is NAME-VERSION
 		# If VERSION is not set then fail out (unless they specified a custom BUILD_DIR)
-		if [ -z "${VERSION-}" ] &&  [ -z "${BUILD_DIR-}"]; then
+		if [ -z "${VERSION-}" ] &&  [ -z "${BUILD_DIR-}" ]; then
 			die "Port $PORT does not have the VERSION tag"
 		fi
 
@@ -199,7 +256,7 @@ fetch() {
 				info "Build directory $BUILD_DIR already exists, assuming port is built."
 				info "To rebuild port please delete dir or rerun script with -f option."
 				popd > /dev/null
-				exit 0
+				exit 1
 			fi
 		fi
 
@@ -231,7 +288,7 @@ pre_setup() {
 }
 
 apply_patches() {
-	local patches_dir="../patches"
+	local patches_dir="../../ports/$PORT/patches"
 
 	if ! [ -d "$patches_dir" ]; then
 		info "No patches directory at $patches_dir"
@@ -277,7 +334,7 @@ pre_configure() {
 }
 
 configure() {
-	./configure --host=$TRIPLET --prefix=/usr
+	./configure --host=$TRIPLET --prefix=$PREFIX
 }
 
 
@@ -306,23 +363,44 @@ install() {
 }
 
 # =================================================================
+# Final
+# =================================================================
+
+finish_install() {
+	return
+}
+
+# =================================================================
 # MAIN
 # =================================================================
 
 
 NPROC=$(nproc)
+NPROC_SMALL=$(( $NPROC / 2 ))
 
 if is_built $PORT && [ $FORCE -ne 1 ]; then
 	info "This port was already built. Use the -f flag to rebuild it"
 	exit 0
 fi
 
+mkdir build || true
 
-source "$PORT/build.sh"
+set +u
+unset DEPENDS GIT_URL TARBALL_URL BUILD_DIR VERSION NAME IS_METAPACKAGE VARIANT
+set -u
+
+source "ports/$PORT/build.sh"
 
 build_dependencies
 
-pushd $PORT > /dev/null
+set +u
+if [ -n "$IS_METAPACKAGE" ]; then
+	echo "Metapackage"
+	exit 0
+fi
+set -u
+
+pushd build > /dev/null
 
 fetch
 
@@ -337,10 +415,19 @@ pre_build
 build
 pre_install
 install
+finish_install
 
 popd > /dev/null
+
+set +u
+if [[ $VARIANT == 1 ]]; then
+	echo "$NAME" >> ../.built_ports
+fi
+set -u
 
 echo "$PORT" >> ../.built_ports
 
 popd > /dev/null
 
+# delete all .la files
+rm "$SYSROOT"/usr/lib/*.la || true

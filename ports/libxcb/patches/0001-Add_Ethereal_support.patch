@@ -1,0 +1,12 @@
+diff -Naur old_extract/libxcb-1.17.0/configure.ac new_workspace/libxcb-1.17.0/configure.ac
+--- a/configure.ac	2024-04-15 10:09:27.000000000 -0500
++++ b/configure.ac	2026-06-23 15:04:29.386049965 -0500
+@@ -54,7 +54,7 @@
+ PKG_CHECK_MODULES(XCBPROTO, xcb-proto >= 1.17.0)
+ NEEDED="xau >= 0.99.2"
+ case $host_os in
+-linux*|darwin*|solaris*|dragonfly*|freebsd*|netbsd*) ;;
++linux*|darwin*|solaris*|dragonfly*|freebsd*|netbsd*|ethereal*) ;;
+      *) NEEDED="$NEEDED pthread-stubs" ;;
+ esac
+ PKG_CHECK_MODULES(NEEDED, $NEEDED)

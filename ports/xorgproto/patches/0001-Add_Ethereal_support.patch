@@ -1,0 +1,35 @@
+diff -Naur old_extract/xorgproto-2025.1/config.sub new_workspace/xorgproto-2025.1/config.sub
+--- a/config.sub	2025-12-19 01:11:21.000000000 -0600
++++ b/config.sub	2026-06-03 12:19:47.822725824 -0500
+@@ -2004,6 +2004,7 @@
+ 	| emscripten* \
+ 	| emx* \
+ 	| es* \
++	| ethereal* \
+ 	| fiwix* \
+ 	| freebsd* \
+ 	| fuchsia* \
+diff -Naur old_extract/xorgproto-2025.1/include/X11/Xfuncs.h new_workspace/xorgproto-2025.1/include/X11/Xfuncs.h
+--- a/include/X11/Xfuncs.h	2025-12-19 01:11:19.000000000 -0600
++++ b/include/X11/Xfuncs.h	2026-06-03 12:20:07.666059025 -0500
+@@ -44,7 +44,7 @@
+ #    define bcmp(b1,b2,len) memcmp(b1, b2, len)
+ #   else
+ #    include <string.h>
+-#    if defined(__SCO__) || defined(__sun) || defined(__UNIXWARE__) || defined(__CYGWIN__) || defined(_AIX) || defined(__APPLE__)
++#    if defined(__SCO__) || defined(__sun) || defined(__UNIXWARE__) || defined(__CYGWIN__) || defined(_AIX) || defined(__APPLE__) || defined(__ETHEREAL__)
+ #     include <strings.h>
+ #    endif
+ #    define _XFUNCS_H_INCLUDED_STRING_H
+diff -Naur old_extract/xorgproto-2025.1/include/X11/Xos.h new_workspace/xorgproto-2025.1/include/X11/Xos.h
+--- a/include/X11/Xos.h	2025-12-19 01:11:19.000000000 -0600
++++ b/include/X11/Xos.h	2026-06-03 13:42:03.097248072 -0500
+@@ -60,7 +60,7 @@
+  */
+ 
+ # include <string.h>
+-# if defined(__SCO__) || defined(__UNIXWARE__) || defined(__sun) || defined(__CYGWIN__) || defined(_AIX) || defined(__APPLE__) || defined(__FreeBSD__) || defined(__OpenBSD__)
++# if defined(__SCO__) || defined(__UNIXWARE__) || defined(__sun) || defined(__CYGWIN__) || defined(_AIX) || defined(__APPLE__) || defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__ETHEREAL__)
+ #  include <strings.h>
+ # else
+ #  ifndef index

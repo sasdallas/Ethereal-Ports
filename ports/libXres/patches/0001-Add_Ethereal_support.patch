@@ -1,0 +1,41 @@
+diff -Naur old_extract/libXres-1.2.3/config.sub new_workspace/libXres-1.2.3/config.sub
+--- a/config.sub	2025-09-07 20:33:06.000000000 -0500
++++ b/config.sub	2026-06-23 16:02:01.369838475 -0500
+@@ -2006,6 +2006,7 @@
+ 	| es* \
+ 	| fiwix* \
+ 	| freebsd* \
++	| ethereal* \
+ 	| fuchsia* \
+ 	| genix* \
+ 	| genode* \
+diff -Naur old_extract/libXres-1.2.3/configure new_workspace/libXres-1.2.3/configure
+--- a/configure	2025-09-07 20:33:05.000000000 -0500
++++ b/configure	2026-06-23 16:02:01.410216939 -0500
+@@ -6220,6 +6220,10 @@
+   lt_cv_deplibs_check_method=pass_all
+   ;;
+ 
++ethereal*)
++      lt_cv_deplibs_check_method=pass_all
++      ;;
++
+ hpux10.20* | hpux11*)
+   lt_cv_file_magic_cmd=$FILECMD
+   case $host_cpu in
+@@ -11858,6 +11862,15 @@
+   version_type=linux # correct to gnu/linux during the next big refactor
+   need_lib_prefix=no
+   need_version=no
++  library_names_spec='$libname$release$shared_ext$versuffix $libname$release$shared_ext$major $libname$shared_ext'
++  soname_spec='$libname$release$shared_ext$major'
++  shlibpath_var=LD_LIBRARY_PATH
++  ;;
++
++ethereal*)
++  version_type=linux # correct to gnu/linux during the next big refactor
++  need_lib_prefix=no
++  need_version=no
+   library_names_spec='$libname$release$shared_ext$versuffix $libname$release$shared_ext$major $libname$shared_ext'
+   soname_spec='$libname$release$shared_ext$major'
+   shlibpath_var=LD_LIBRARY_PATH

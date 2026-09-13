@@ -1,0 +1,102 @@
+diff --git a/Makefile b/Makefile
+index 0b663adf5..50a32134b 100644
+--- a/Makefile
++++ b/Makefile
+@@ -168,6 +168,11 @@ ifeq ($(PLAT),serenityos)
+ 	BUILD_DIR = build/serenity
+ endif
+ 
++ifeq ($(PLAT),ethereal)
++	LIBS	= -lSDL2 -lOSMesa
++	BUILD_DIR = build/ethereal
++endif
++
+ ifeq ($(PLAT),irix)
+ 	CC      = gcc
+ 	LIBS    = -lGL -lX11 -lXi -lpthread -ldl
+@@ -252,6 +257,8 @@ beos:
+ 	$(MAKE) $(TARGET) PLAT=beos
+ serenityos:
+ 	$(MAKE) $(TARGET) PLAT=serenityos
++ethereal:
++	$(MAKE) $(TARGET) PLAT=ethereal
+ irix:
+ 	$(MAKE) $(TARGET) PLAT=irix
+ riscos:
+diff --git a/src/Core.h b/src/Core.h
+index f7ecbe83c..56aa78be3 100644
+--- a/src/Core.h
++++ b/src/Core.h
+@@ -255,6 +255,15 @@ typedef cc_uint8  cc_bool;
+ 	#define DEFAULT_AUD_BACKEND CC_AUD_BACKEND_OPENAL
+ 	#define DEFAULT_GFX_BACKEND CC_GFX_BACKEND_GL1
+ 	#define DEFAULT_WIN_BACKEND CC_WIN_BACKEND_SDL2
++#elif defined __ETHEREAL__
++	#define CC_BUILD_ETHEREAL
++	#define CC_BUILD_POSIX
++	#define DEFAULT_NET_BACKEND CC_NET_BACKEND_BUILTIN
++	#define DEFAULT_SSL_BACKEND CC_SSL_BACKEND_BEARSSL
++	#define DEFAULT_CRT_BACKEND CC_CRT_BACKEND_OPENSSL
++	#define DEFAULT_AUD_BACKEND CC_AUD_BACKEND_OPENAL
++	#define DEFAULT_GFX_BACKEND CC_GFX_BACKEND_GL2
++	#define DEFAULT_WIN_BACKEND CC_WIN_BACKEND_SDL2
+ #elif defined MSDOS
+ 	#undef  CC_BUILD_FREETYPE
+ 	#define CC_BUILD_MSDOS
+diff --git a/src/Logger.c b/src/Logger.c
+index d89da19ff..c6155df4c 100644
+--- a/src/Logger.c
++++ b/src/Logger.c
+@@ -207,6 +207,8 @@ void Logger_IOWarn2(cc_result res, const char* action, const struct cc_filepath_
+ 	#include "posix/Plat_SerenityOS.inc"
+ #elif defined CC_BUILD_IRIX
+ 	#include "posix/Plat_IRIX.inc"
++#elif defined CC_BUILD_ETHEREAL
++	#include "posix/Plat_Ethereal.inc"
+ #else
+ void CrashHandler_DumpRegisters(void* ctx, cc_string* str) {
+ 	/* Register dumping not implemented */
+@@ -326,6 +328,9 @@ static void DumpFrame(cc_string* trace, void* addr) {}
+ #ifndef __USE_GNU
+ #define __USE_GNU
+ #endif
++#ifndef __MLIBC_POSIX2024
++#define __MLIBC_POSIX2024
++#endif
+ #include <dlfcn.h>
+ #undef __USE_GNU
+ 
+diff --git a/src/Platform_Posix.c b/src/Platform_Posix.c
+index 7126ea73f..66994c2a7 100644
+--- a/src/Platform_Posix.c
++++ b/src/Platform_Posix.c
+@@ -1127,6 +1127,15 @@ static cc_result Process_RawGetExePath(char* path, int* len) {
+ 	}
+ 	return 0;
+ }
++#elif defined CC_BUILD_ETHEREAL
++static cc_result Process_RawGetExePath(char *path, int* len) {
++	fprintf(stderr, "Process_RawGetExePath is not supported!\n");
++
++	static cc_string file = String_FromConst("/usr/bin/ClassiCube");
++	Mem_Copy(path, file.buffer, file.length);
++	*len = file.length;
++	return 0;
++}
+ #endif
+ 
+ 
+diff --git a/src/posix/Plat_Ethereal.inc b/src/posix/Plat_Ethereal.inc
+new file mode 100644
+index 000000000..3041e5cb9
+--- /dev/null
++++ b/src/posix/Plat_Ethereal.inc
+@@ -0,0 +1,8 @@
++/* See Kernel/Arch/[ARCH]/mcontext.h */
++
++/* Register constants can be found from includes in <signal.h> */
++#include <signal.h>
++
++void CrashHandler_DumpRegisters(void* ctx, cc_string* str) {
++    String_Format1(str, "Error occurred; ctx=%p\n", ctx);
++}

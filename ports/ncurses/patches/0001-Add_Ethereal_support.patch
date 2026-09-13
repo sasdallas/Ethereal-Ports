@@ -1,0 +1,25 @@
+diff -Naur old_extract/ncurses-6.5/config.sub new_workspace/ncurses-6.5/config.sub
+--- a/config.sub	2023-12-27 08:41:27.000000000 -0600
++++ b/config.sub	2025-07-05 13:08:33.728742419 -0500
+@@ -1768,7 +1768,7 @@
+ 	     | onefs* | tirtos* | phoenix* | fuchsia* | redox* | bme* \
+ 	     | midnightbsd* | amdhsa* | unleashed* | emscripten* | wasi* \
+ 	     | nsk* | powerunix* | genode* | zvmoe* | qnx* | emx* | zephyr* \
+-	     | fiwix* | mlibc* | cos* | mbr* | ironclad* )
++	     | fiwix* | mlibc* | cos* | mbr* | ironclad* | ethereal*)
+ 		;;
+ 	# This one is extra strict with allowed versions
+ 	sco3.2v2 | sco3.2v[4-9]* | sco5v6*)
+diff -Naur old_extract/ncurses-6.5/configure new_workspace/ncurses-6.5/configure
+--- a/configure	2024-04-10 03:09:48.000000000 -0500
++++ b/configure	2025-09-07 20:59:35.484619026 -0500
+@@ -6671,6 +6671,9 @@
+ CF_EOF
+ 		chmod +x mk_shared_lib.sh
+ 		;;
++	(ethereal*)
++		MK_SHARED_LIB='${CC} ${LDFLAGS} ${CFLAGS} -shared -Wl,-soname,`basename $@` -o $@'
++		;;
+ 	(msys*)
+ 		CC_SHARED_OPTS=
+ 		MK_SHARED_LIB=$SHELL' '$rel_builddir'/mk_shared_lib.sh $@ ${CC} ${CFLAGS}'

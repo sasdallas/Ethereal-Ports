@@ -1,0 +1,42 @@
+diff -Naur old_extract/SDL_mixer-release-1.2.12/build-scripts/config.sub new_workspace/SDL_mixer-release-1.2.12/build-scripts/config.sub
+--- a/build-scripts/config.sub	2012-01-15 16:00:28.000000000 -0600
++++ b/build-scripts/config.sub	2026-07-13 17:02:59.739620390 -0500
+@@ -1283,7 +1283,7 @@
+ 	      | -clix* | -riscos* | -uniplus* | -iris* | -rtu* | -xenix* \
+ 	      | -hiux* | -386bsd* | -knetbsd* | -mirbsd* | -netbsd* \
+ 	      | -openbsd* | -solidbsd* \
+-	      | -ekkobsd* | -kfreebsd* | -freebsd* | -riscix* | -lynxos* \
++	      | -ekkobsd* | -kfreebsd* | -ethereal* | -freebsd* | ethereal* | -riscix* | -lynxos* \
+ 	      | -bosx* | -nextstep* | -cxux* | -aout* | -elf* | -oabi* \
+ 	      | -ptx* | -coff* | -ecoff* | -winnt* | -domain* | -vsta* \
+ 	      | -udi* | -eabi* | -lites* | -ieee* | -go32* | -aux* \
+diff -Naur old_extract/SDL_mixer-release-1.2.12/configure new_workspace/SDL_mixer-release-1.2.12/configure
+--- a/configure	2012-01-15 16:00:28.000000000 -0600
++++ b/configure	2026-07-13 17:05:15.493946758 -0500
+@@ -4077,6 +4077,10 @@
+   lt_cv_deplibs_check_method=pass_all
+   ;;
+ 
++ethereal*)
++  lt_cv_deplibs_check_method=pass_all
++  ;;
++
+ bsdi[45]*)
+   lt_cv_deplibs_check_method='file_magic ELF [0-9][0-9]*-bit [ML]SB (shared object|dynamic lib)'
+   lt_cv_file_magic_cmd='/usr/bin/file -L'
+@@ -9191,6 +9195,15 @@
+   shlibpath_var=LD_LIBRARY_PATH
+   ;;
+ 
++ethereal*)
++  version_type=linux # correct to gnu/linux during the next big refactor
++  need_lib_prefix=no
++  need_version=no
++  library_names_spec='$libname$release$shared_ext$versuffix $libname$release$shared_ext$major $libname$shared_ext'
++  soname_spec='$libname$release$shared_ext$major'
++  shlibpath_var=LD_LIBRARY_PATH
++  ;;
++
+ freebsd1*)
+   dynamic_linker=no
+   ;;

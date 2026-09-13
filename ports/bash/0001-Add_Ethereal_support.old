@@ -1,0 +1,49 @@
+diff -Naur old_extract/bash-5.2/externs.h new_workspace/bash-5.2/externs.h
+--- a/externs.h	2022-07-05 10:08:50.000000000 -0500
++++ b/externs.h	2026-06-27 12:52:12.017543811 -0500
+@@ -292,7 +292,7 @@
+ #endif /* !HAVE_GETDTABLESIZE */
+ 
+ #if !defined (HAVE_GETHOSTNAME)
+-extern int gethostname PARAMS((char *, int));
++extern int gethostname PARAMS((char *, size_t));
+ #endif /* !HAVE_GETHOSTNAME */
+ 
+ extern int getmaxgroups PARAMS((void));
+diff -Naur old_extract/bash-5.2/subst.c new_workspace/bash-5.2/subst.c
+--- a/subst.c	2022-08-31 16:36:46.000000000 -0500
++++ b/subst.c	2026-06-27 12:52:42.635763613 -0500
+@@ -32,6 +32,7 @@
+ #endif
+ #include <signal.h>
+ #include <errno.h>
++#include <limits.h>
+ 
+ #if defined (HAVE_UNISTD_H)
+ #  include <unistd.h>
+diff -Naur old_extract/bash-5.2/support/config.sub new_workspace/bash-5.2/support/config.sub
+--- a/support/config.sub	2022-01-11 13:38:29.000000000 -0600
++++ b/support/config.sub	2026-06-27 12:52:15.959423717 -0500
+@@ -1736,7 +1736,7 @@
+ 	     | clix* | riscos* | uniplus* | iris* | isc* | rtu* | xenix* \
+ 	     | mirbsd* | netbsd* | dicos* | openedition* | ose* \
+ 	     | bitrig* | openbsd* | secbsd* | solidbsd* | libertybsd* | os108* \
+-	     | ekkobsd* | freebsd* | riscix* | lynxos* | os400* \
++	     | ekkobsd* | freebsd* | ethereal* | riscix* | lynxos* | os400* \
+ 	     | bosx* | nextstep* | cxux* | aout* | elf* | oabi* \
+ 	     | ptx* | coff* | ecoff* | winnt* | domain* | vsta* \
+ 	     | udi* | lites* | ieee* | go32* | aux* | hcos* \
+diff -Naur old_extract/bash-5.2/support/shobj-conf new_workspace/bash-5.2/support/shobj-conf
+--- a/support/shobj-conf	2021-12-03 09:54:46.000000000 -0600
++++ b/support/shobj-conf	2026-06-27 12:52:28.953784799 -0500
+@@ -79,6 +79,10 @@
+ 	SHOBJ_LDFLAGS='-shared -bglobalized -unres_symbols ignore'
+ 	;;
+ 
++ethereal*-*gcc*)
++	SHOBJ_CFLAGS=-fpic
++	;;
++
+ sunos4*-*gcc*)
+ 	SHOBJ_CFLAGS=-fpic
+ 	SHOBJ_LD=/usr/bin/ld

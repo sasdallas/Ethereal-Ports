@@ -1,0 +1,12 @@
+diff -Naur old_extract/zlib-1.3.2/configure new_workspace/zlib-1.3.2/configure
+--- a/configure	2026-02-17 03:13:25.000000000 -0600
++++ b/configure	2026-06-26 10:58:52.797657515 -0500
+@@ -289,7 +289,7 @@
+     uname=`(uname -s || echo unknown) 2>/dev/null`
+   fi
+   case "$uname" in
+-  Linux* | linux* | *-linux* | GNU | GNU/* | solaris* | Haiku)
++  Linux* | linux* | *-linux* | GNU | GNU/* | solaris* | Haiku | *-ethereal*)
+         case "$mname" in
+         *sparc*)
+             LDFLAGS="${LDFLAGS} -Wl,--no-warn-rwx-segments" ;;

@@ -1,0 +1,12 @@
+diff -Naur old_extract/openal-soft-1.24.3/CMakeLists.txt new_workspace/openal-soft-1.24.3/CMakeLists.txt
+--- a/CMakeLists.txt	2025-03-28 23:08:24.000000000 -0500
++++ b/CMakeLists.txt	2026-07-13 18:32:33.766675631 -0500
+@@ -164,7 +164,7 @@
+ 
+ set(CPP_DEFS ) # C pre-processor, not C++
+ set(INC_PATHS )
+-set(C_FLAGS )
++set(C_FLAGS -D__STDC_NO_THREADS__)
+ set(LINKER_FLAGS )
+ set(LINKER_FLAGS_DEBUG )
+ set(LINKER_FLAGS_RELEASE )

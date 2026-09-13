@@ -1,0 +1,55 @@
+diff -Naur old_extract/nano-8.5/config.sub new_workspace/nano-8.5/config.sub
+--- a/config.sub	2022-01-31 08:43:17.000000000 -0600
++++ b/config.sub	2025-07-05 12:56:58.692758632 -0500
+@@ -1754,7 +1754,7 @@
+ 	     | onefs* | tirtos* | phoenix* | fuchsia* | redox* | bme* \
+ 	     | midnightbsd* | amdhsa* | unleashed* | emscripten* | wasi* \
+ 	     | nsk* | powerunix* | genode* | zvmoe* | qnx* | emx* | zephyr* \
+-	     | fiwix* )
++	     | fiwix* | ethereal* )
+ 		;;
+ 	# This one is extra strict with allowed versions
+ 	sco3.2v2 | sco3.2v[4-9]* | sco5v6*)
+diff -Naur old_extract/nano-8.5/lib/getprogname.c new_workspace/nano-8.5/lib/getprogname.c
+--- a/lib/getprogname.c	2025-06-12 02:29:39.000000000 -0500
++++ b/lib/getprogname.c	2025-07-05 13:07:15.738021858 -0500
+@@ -297,6 +297,8 @@
+       close (fd);
+     }
+   return "?";
++#elif defined __ETHEREAL__
++	return "?";
+ # else
+ #  error "getprogname module not ported to this OS"
+ # endif
+diff -Naur old_extract/nano-8.5/src/text.c new_workspace/nano-8.5/src/text.c
+--- a/src/text.c	2025-06-08 06:26:32.000000000 -0500
++++ b/src/text.c	2025-08-12 13:42:06.632844360 -0500
+@@ -2133,8 +2133,10 @@
+ 			return;
+ 		}
+ 
++#ifndef __ETHEREAL__
+ 		timestamp_sec = (long)fileinfo.st_mtim.tv_sec;
+-		timestamp_nsec = (long)fileinfo.st_mtim.tv_nsec;
++		timestamp_nsec = (long)fileinfo.st_mtim.tv_usec;
++#endif	
+ 	}
+ 
+ 	/* The spell checker needs the screen, so exit from curses mode. */
+@@ -2182,6 +2184,7 @@
+ 
+ 	free(arguments[0]);
+ 
++#ifndef __ETHEREAL__
+ 	/* When the temporary file wasn't touched, say so and leave. */
+ 	if (timestamp_sec > 0 && stat(tempfile_name, &fileinfo) == 0 &&
+ 					(long)fileinfo.st_mtim.tv_sec == timestamp_sec &&
+@@ -2189,6 +2192,7 @@
+ 		statusline(REMARK, _("Nothing changed"));
+ 		return;
+ 	}
++#endif
+ 
+ #ifndef NANO_TINY
+ 	/* Replace the marked text (or entire text) with the corrected text. */

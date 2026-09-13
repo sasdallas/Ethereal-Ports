@@ -1,0 +1,54 @@
+diff -Naur old_extract/libdrm-2.4.122/include/drm/drm.h new_workspace/libdrm-2.4.122/include/drm/drm.h
+--- a/include/drm/drm.h	2024-06-26 03:13:31.000000000 -0500
++++ b/include/drm/drm.h	2026-06-20 10:35:30.415046839 -0500
+@@ -44,7 +44,11 @@
+ #else /* One of the BSDs */
+ 
+ #include <stdint.h>
+-#include <sys/ioccom.h>
++
++#ifdef __ETHEREAL__
++#include <asm/ioctl.h>
++#endif
++
+ #include <sys/types.h>
+ typedef int8_t   __s8;
+ typedef uint8_t  __u8;
+@@ -57,6 +61,7 @@
+ typedef size_t   __kernel_size_t;
+ typedef unsigned long drm_handle_t;
+ 
++
+ #endif
+ 
+ #if defined(__cplusplus)
+diff -Naur old_extract/libdrm-2.4.122/xf86drm.c new_workspace/libdrm-2.4.122/xf86drm.c
+--- a/xf86drm.c	2024-06-26 03:13:31.000000000 -0500
++++ b/xf86drm.c	2026-06-20 10:09:38.963462423 -0500
+@@ -54,9 +54,11 @@
+ #ifdef MAJOR_IN_MKDEV
+ #include <sys/mkdev.h>
+ #endif
+-#ifdef MAJOR_IN_SYSMACROS
++
++#if defined(MAJOR_IN_SYSMACROS) || defined(__ETHEREAL__)
+ #include <sys/sysmacros.h>
+ #endif
++
+ #if HAVE_SYS_SYSCTL_H
+ #include <sys/sysctl.h>
+ #endif
+diff -Naur old_extract/libdrm-2.4.122/xf86drm.h new_workspace/libdrm-2.4.122/xf86drm.h
+--- a/xf86drm.h	2024-06-26 03:13:31.000000000 -0500
++++ b/xf86drm.h	2026-06-20 10:04:30.262925564 -0500
+@@ -58,7 +58,10 @@
+ 
+ #else /* One of the *BSDs */
+ 
++#ifndef __ETHEREAL__
+ #include <sys/ioccom.h>
++#endif
++
+ #define DRM_IOCTL_NR(n)         ((n) & 0xff)
+ #define DRM_IOC_VOID            IOC_VOID
+ #define DRM_IOC_READ            IOC_OUT

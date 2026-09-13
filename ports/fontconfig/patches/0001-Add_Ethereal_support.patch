@@ -1,0 +1,41 @@
+diff -Naur old_extract/fontconfig-2.18.0/config.sub new_workspace/fontconfig-2.18.0/config.sub
+--- a/config.sub	2026-05-21 08:39:41.684757200 -0500
++++ b/config.sub	2026-06-23 15:21:09.653260105 -0500
+@@ -2012,6 +2012,7 @@
+ 	| es* \
+ 	| fiwix* \
+ 	| freebsd* \
++	| ethereal* \
+ 	| fuchsia* \
+ 	| genix* \
+ 	| genode* \
+diff -Naur old_extract/fontconfig-2.18.0/configure new_workspace/fontconfig-2.18.0/configure
+--- a/configure	2026-05-21 08:39:40.852763000 -0500
++++ b/configure	2026-06-23 15:21:05.817330820 -0500
+@@ -8003,6 +8003,10 @@
+   lt_cv_deplibs_check_method=pass_all
+   ;;
+ 
++ethereal*)
++      lt_cv_deplibs_check_method=pass_all
++      ;;
++
+ hpux10.20* | hpux11*)
+   lt_cv_file_magic_cmd=$FILECMD
+   case $host_cpu in
+@@ -13941,6 +13945,15 @@
+   version_type=linux # correct to gnu/linux during the next big refactor
+   need_lib_prefix=no
+   need_version=no
++  library_names_spec='$libname$release$shared_ext$versuffix $libname$release$shared_ext$major $libname$shared_ext'
++  soname_spec='$libname$release$shared_ext$major'
++  shlibpath_var=LD_LIBRARY_PATH
++  ;;
++
++ethereal*)
++  version_type=linux # correct to gnu/linux during the next big refactor
++  need_lib_prefix=no
++  need_version=no
+   library_names_spec='$libname$release$shared_ext$versuffix $libname$release$shared_ext$major $libname$shared_ext'
+   soname_spec='$libname$release$shared_ext$major'
+   shlibpath_var=LD_LIBRARY_PATH

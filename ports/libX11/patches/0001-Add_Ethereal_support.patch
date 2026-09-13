@@ -1,0 +1,52 @@
+diff -Naur old_extract/libX11-1.8.13/config.sub new_workspace/libX11-1.8.13/config.sub
+--- a/config.sub	2026-02-07 16:26:42.000000000 -0600
++++ b/config.sub	2026-06-03 12:55:45.063716245 -0500
+@@ -2004,7 +2004,7 @@
+ 	| emscripten* \
+ 	| emx* \
+ 	| es* \
+-	| fiwix* \
++	| fiwix* | ethereal* \
+ 	| freebsd* \
+ 	| fuchsia* \
+ 	| genix* \
+diff -Naur old_extract/libX11-1.8.13/configure new_workspace/libX11-1.8.13/configure
+--- a/configure	2026-02-07 16:26:41.000000000 -0600
++++ b/configure	2026-06-03 13:26:30.628711696 -0500
+@@ -6802,6 +6802,10 @@
+   lt_cv_deplibs_check_method=pass_all
+   ;;
+ 
++ethereal*)
++  lt_cv_deplibs_check_method=pass_all
++  ;;
++
+ freebsd* | dragonfly* | midnightbsd*)
+   if echo __ELF__ | $CC -E - | $GREP __ELF__ > /dev/null; then
+     case $host_cpu in
+@@ -10043,6 +10047,8 @@
+       esac
+       ;;
+ 
++    ethereal*) ;;
++
+     mingw* | windows* | cygwin* | pw32* | os2* | cegcc*)
+       # This hack is so that the source file can tell whether it is being
+       # built for inclusion in a dll (and should export symbols for example).
+@@ -12435,6 +12441,16 @@
+   shlibpath_var=LD_LIBRARY_PATH
+   ;;
+ 
++ethereal*)
++  version_type=linux # correct to gnu/linux during the next big refactor
++  need_lib_prefix=no
++  need_version=no
++  library_names_spec='$libname$release$shared_ext$versuffix $libname$release$shared_ext$major $libname$shared_ext'
++  soname_spec='$libname$release$shared_ext$major'
++  shlibpath_var=LD_LIBRARY_PATH
++  ;;
++
++
+ freebsd* | dragonfly* | midnightbsd*)
+   # DragonFly does not have aout.  When/if they implement a new
+   # versioning mechanism, adjust this.

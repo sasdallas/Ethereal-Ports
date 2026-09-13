@@ -1,0 +1,41 @@
+diff -Naur old_extract/libXi-1.8.3/config.sub new_workspace/libXi-1.8.3/config.sub
+--- a/config.sub	2026-05-17 19:15:44.000000000 -0500
++++ b/config.sub	2026-06-23 16:02:01.091215905 -0500
+@@ -2012,6 +2012,7 @@
+ 	| es* \
+ 	| fiwix* \
+ 	| freebsd* \
++	| ethereal* \
+ 	| fuchsia* \
+ 	| genix* \
+ 	| genode* \
+diff -Naur old_extract/libXi-1.8.3/configure new_workspace/libXi-1.8.3/configure
+--- a/configure	2026-05-17 19:15:44.000000000 -0500
++++ b/configure	2026-06-23 16:02:01.134216045 -0500
+@@ -6337,6 +6337,10 @@
+   lt_cv_deplibs_check_method=pass_all
+   ;;
+ 
++ethereal*)
++      lt_cv_deplibs_check_method=pass_all
++      ;;
++
+ hpux10.20* | hpux11*)
+   lt_cv_file_magic_cmd=$FILECMD
+   case $host_cpu in
+@@ -11975,6 +11979,15 @@
+   version_type=linux # correct to gnu/linux during the next big refactor
+   need_lib_prefix=no
+   need_version=no
++  library_names_spec='$libname$release$shared_ext$versuffix $libname$release$shared_ext$major $libname$shared_ext'
++  soname_spec='$libname$release$shared_ext$major'
++  shlibpath_var=LD_LIBRARY_PATH
++  ;;
++
++ethereal*)
++  version_type=linux # correct to gnu/linux during the next big refactor
++  need_lib_prefix=no
++  need_version=no
+   library_names_spec='$libname$release$shared_ext$versuffix $libname$release$shared_ext$major $libname$shared_ext'
+   soname_spec='$libname$release$shared_ext$major'
+   shlibpath_var=LD_LIBRARY_PATH

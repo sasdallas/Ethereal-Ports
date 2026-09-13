@@ -1,0 +1,1816 @@
+diff -Naur old_extract/SDL2-2.30.11/cmake/sdlchecks.cmake new_workspace/SDL2-2.30.11/cmake/sdlchecks.cmake
+--- a/cmake/sdlchecks.cmake	2024-07-29 09:22:29.000000000 -0500
++++ b/cmake/sdlchecks.cmake	2026-07-25 11:41:15.639620493 -0500
+@@ -981,6 +981,9 @@
+       set(PTHREAD_LDFLAGS "-pthread")
+     elseif(QNX)
+       # pthread support is baked in
++    elseif(ETHEREAL)
++      set(PTHREAD_CFLAGS "-D_REENTRANT -pthread")
++      set(PTHREAD_LDFLAGS "-lpthread")
+     else()
+       set(PTHREAD_CFLAGS "-D_REENTRANT")
+       set(PTHREAD_LDFLAGS "-lpthread")
+@@ -996,6 +999,7 @@
+         pthread_attr_init(&type);
+         return 0;
+       }" HAVE_PTHREADS)
++
+     if(HAVE_PTHREADS)
+       set(SDL_THREAD_PTHREAD 1)
+       list(APPEND EXTRA_CFLAGS ${PTHREAD_CFLAGS})
+diff -Naur old_extract/SDL2-2.30.11/CMakeLists.txt new_workspace/SDL2-2.30.11/CMakeLists.txt
+--- a/CMakeLists.txt	2025-01-01 11:09:38.000000000 -0600
++++ b/CMakeLists.txt	2026-07-25 12:01:48.175166222 -0500
+@@ -1385,6 +1385,63 @@
+     set(HAVE_CLOCK_GETTIME 1)
+   endif()
+ 
++elseif(ETHEREAL)
++  if(SDL_MISC)
++    file(GLOB MISC_SOURCES ${SDL2_SOURCE_DIR}/src/misc/ethereal/*.c)
++    list(APPEND SOURCE_FILES ${MISC_SOURCES})
++    set(HAVE_SDL_MISC TRUE)
++  endif()
++
++  if(SDL_VIDEO)
++    set(SDL_VIDEO_DRIVER_ETHEREAL 1)
++
++    find_package(Freetype REQUIRED)
++
++    file(GLOB VIDEO_SOURCES ${SDL2_SOURCE_DIR}/src/video/ethereal/*.c)
++    list(APPEND SOURCE_FILES ${VIDEO_SOURCES})
++    set(HAVE_SDL_VIDEO TRUE)
++    list(APPEND EXTRA_LIBS celestial graphics freetype keyboard ethereal structures)
++    set(HAVE_OPENGL FALSE)
++    
++    if(SDL_OPENGL)
++      set(SDL_VIDEO_OPENGL 1)
++      set(SDL_VIDEO_OPENGL_ETHEREAL 1)
++      set(SDL_VIDEO_RENDER_OGL 1)
++        list(APPEND EXTRA_LIBS OSMesa)
++        set(HAVE_OPENGL TRUE)
++        add_definitions(-DETHEREAL_ENABLE_OPENGL)
++    endif()
++
++    target_include_directories(sdl-build-options INTERFACE ${FREETYPE_INCLUDE_DIRS})
++  endif()
++
++  if (SDL_AUDIO) 
++    set(SDL_AUDIO_DRIVER_ETHEREAL 1)
++    file(GLOB AUDIO_SOURCES ${SDL2_SOURCE_DIR}/src/audio/ethereal/*.c)
++    list(APPEND SOURCE_FILES ${AUDIO_SOURCES})
++    set(HAVE_SDL_AUDIO TRUE)
++    list(APPEND EXTRA_LIBS symphony)
++  endif()
++
++  if(SDL_FILESYSTEM)
++    set(SDL_FILESYSTEM_UNIX 1)
++    file(GLOB FILESYSTEM_SOURCES ${SDL2_SOURCE_DIR}/src/filesystem/unix/*.c)
++    list(APPEND SOURCE_FILES ${FILESYSTEM_SOURCES})
++    set(HAVE_SDL_FILESYSTEM TRUE)
++  endif()
++  
++  if(SDL_TIMERS)
++    set(SDL_TIMER_UNIX 1)
++    file(GLOB TIMER_SOURCES ${SDL2_SOURCE_DIR}/src/timer/unix/*.c)
++    list(APPEND SOURCE_FILES ${TIMER_SOURCES})
++    set(HAVE_SDL_TIMERS TRUE)
++
++    if(SDL_CLOCK_GETTIME)
++      set(HAVE_CLOCK_GETTIME 1)
++    endif()
++  endif()
++
++  CheckPTHREAD()
+ elseif(EMSCRIPTEN)
+   # Hide noisy warnings that intend to aid mostly during initial stages of porting a new
+   # project. Uncomment at will for verbose cross-compiling -I/../ path info.
+@@ -1452,7 +1509,7 @@
+   CheckPTHREAD()
+   CheckLibUnwind()
+ 
+-elseif(UNIX AND NOT APPLE AND NOT RISCOS AND NOT HAIKU)
++elseif(UNIX AND NOT APPLE AND NOT RISCOS AND NOT HAIKU AND NOT ETHEREAL)
+   if(SDL_AUDIO)
+     if(SYSV5 OR SOLARIS OR HPUX)
+         set(SDL_AUDIO_DRIVER_SUNAUDIO 1)
+diff -Naur old_extract/SDL2-2.30.11/ETHEREAL_Toolchain.txt new_workspace/SDL2-2.30.11/ETHEREAL_Toolchain.txt
+--- a/ETHEREAL_Toolchain.txt	1969-12-31 18:00:00.000000000 -0600
++++ b/ETHEREAL_Toolchain.txt	2025-07-05 18:51:50.455409519 -0500
+@@ -0,0 +1,24 @@
++if (NOT DEFINED ENV{SYSROOT})
++	message(FATAL_ERROR "SYSROOT must be defined")
++endif()
++
++set(ETHEREAL_SYSROOT $ENV{SYSROOT})
++
++set(CMAKE_SYSTEM_NAME ethereal)
++set(CMAKE_SYSTEM_PROCESSOR x86_64)
++
++set(CMAKE_SYSROOT ${ETHEREAL_SYSROOT})
++set(CMAKE_STAGING_PREFIX ${ETHEREAL_SYSROOT}/usr)
++
++set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
++set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
++set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
++set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE BOTH)
++
++set(CMAKE_CXX_STANDARD 20)
++set(CMAKE_CXX_STANDARD_REQUIRED True)
++set(CMAKE_CXX_COMPILER x86_64-ethereal-g++)
++set(CMAKE_CXX_COMPILER_WORKS True)
++
++set(CMAKE_C_COMPILER x86_64-ethereal-gcc)
++set(CMAKE_C_COMPILER_WORKS True)
+diff -Naur old_extract/SDL2-2.30.11/.git-hash new_workspace/SDL2-2.30.11/.git-hash
+--- a/.git-hash	2025-01-01 11:09:38.000000000 -0600
++++ b/.git-hash	1969-12-31 18:00:00.000000000 -0600
+@@ -1 +0,0 @@
+-fa24d868ac2f8fd558e4e914c9863411245db8fd
+diff -Naur old_extract/SDL2-2.30.11/include/SDL_config.h.cmake new_workspace/SDL2-2.30.11/include/SDL_config.h.cmake
+--- a/include/SDL_config.h.cmake	2025-01-01 09:48:45.000000000 -0600
++++ b/include/SDL_config.h.cmake	2026-07-13 17:21:15.395500405 -0500
+@@ -302,6 +302,7 @@
+ #cmakedefine SDL_AUDIO_DRIVER_DSOUND @SDL_AUDIO_DRIVER_DSOUND@
+ #cmakedefine SDL_AUDIO_DRIVER_DUMMY @SDL_AUDIO_DRIVER_DUMMY@
+ #cmakedefine SDL_AUDIO_DRIVER_EMSCRIPTEN @SDL_AUDIO_DRIVER_EMSCRIPTEN@
++#cmakedefine SDL_AUDIO_DRIVER_ETHEREAL @SDL_AUDIO_DRIVER_ETHEREAL@
+ #cmakedefine SDL_AUDIO_DRIVER_ESD @SDL_AUDIO_DRIVER_ESD@
+ #cmakedefine SDL_AUDIO_DRIVER_ESD_DYNAMIC @SDL_AUDIO_DRIVER_ESD_DYNAMIC@
+ #cmakedefine SDL_AUDIO_DRIVER_FUSIONSOUND @SDL_AUDIO_DRIVER_FUSIONSOUND@
+@@ -423,6 +424,7 @@
+ #cmakedefine SDL_VIDEO_DRIVER_RISCOS @SDL_VIDEO_DRIVER_RISCOS@
+ #cmakedefine SDL_VIDEO_DRIVER_PSP @SDL_VIDEO_DRIVER_PSP@
+ #cmakedefine SDL_VIDEO_DRIVER_PS2 @SDL_VIDEO_DRIVER_PS2@
++#cmakedefine SDL_VIDEO_DRIVER_ETHEREAL @SDL_VIDEO_DRIVER_ETHEREAL@
+ 
+ #cmakedefine SDL_VIDEO_DRIVER_KMSDRM @SDL_VIDEO_DRIVER_KMSDRM@
+ #cmakedefine SDL_VIDEO_DRIVER_KMSDRM_DYNAMIC @SDL_VIDEO_DRIVER_KMSDRM_DYNAMIC@
+diff -Naur old_extract/SDL2-2.30.11/include/SDL_platform.h new_workspace/SDL2-2.30.11/include/SDL_platform.h
+--- a/include/SDL_platform.h	2025-01-01 09:48:45.000000000 -0600
++++ b/include/SDL_platform.h	2025-09-13 12:13:17.349089991 -0500
+@@ -36,6 +36,10 @@
+ #undef __HAIKU__
+ #define __HAIKU__   1
+ #endif
++#if defined(__ETHEREAL__)
++#undef __ETHEREAL__
++#define __ETHEREAL__ 	1
++#endif
+ #if defined(bsdi) || defined(__bsdi) || defined(__bsdi__)
+ #undef __BSDI__
+ #define __BSDI__    1
+diff -Naur old_extract/SDL2-2.30.11/REVISION.txt new_workspace/SDL2-2.30.11/REVISION.txt
+--- a/REVISION.txt	2025-01-01 11:09:38.000000000 -0600
++++ b/REVISION.txt	1969-12-31 18:00:00.000000000 -0600
+@@ -1 +0,0 @@
+-release-2.30.11-0-gfa24d868a
+diff -Naur old_extract/SDL2-2.30.11/src/audio/ethereal/SDL_etherealaudio.c new_workspace/SDL2-2.30.11/src/audio/ethereal/SDL_etherealaudio.c
+--- a/src/audio/ethereal/SDL_etherealaudio.c	1969-12-31 18:00:00.000000000 -0600
++++ b/src/audio/ethereal/SDL_etherealaudio.c	2026-07-14 17:31:51.600780701 -0500
+@@ -0,0 +1,223 @@
++#include "../../SDL_internal.h"
++
++#if defined(SDL_AUDIO_DRIVER_ETHEREAL) || defined(__INTELLISENSE__)
++
++
++#include "SDL_timer.h"
++#include "SDL_audio.h"
++#include "../SDL_audio_c.h"
++#include "SDL_etherealaudio.h"
++
++#include <sys/ioctl.h>
++#include <sys/fcntl.h>
++#include <unistd.h>
++#include <string.h>
++#include <stdlib.h>
++#include <errno.h>
++#include <stdio.h>
++
++#if 0
++#define TRACE() fprintf(stderr, "AUDIO: Enter %s\n", __FUNCTION__)
++#else
++#define TRACE()
++#endif
++
++#if 0
++
++static int ETHEREAL_ConfigureDevice(struct SDL_PrivateAudioData *private) {
++    TRACE();
++    audio_stream_config_t config = {
++        .format = AUDIO_FORMAT_S16_LE,
++        .channels = 2,
++        .periods = 4,
++        .period_size = 2048,
++        .sample_rate = 44100,
++        .start_thres = 2,
++    };
++
++    if (ioctl(private->device_fd, IO_AUDIO_SET_CONFIG, &config) < 0) {
++        return SDL_SetError("Failed to IO_AUDIO_SET_CONFIG: %s", strerror(errno));
++    }
++
++    private->ready = true;
++    return 0;
++}
++
++static int ETHEREAL_OpenDevice(_THIS,  const char *devname) {
++    TRACE();
++    this->hidden = SDL_malloc(sizeof(struct SDL_PrivateAudioData));
++
++    struct SDL_PrivateAudioData *private = this->hidden;
++
++    char *audio_device = SDL_getenv("AUDIODEV");
++    if (!audio_device) audio_device = "/device/audio0s0";
++
++    private->device_fd = open(audio_device, O_RDONLY);
++    if (private->device_fd < 0) {
++        return SDL_SetError("Failed to create audio device %s: %s", audio_device, strerror(errno));
++    }
++
++    private->mixbuf = SDL_malloc(16384);
++    private->ready = false;
++
++    this->spec.freq = 44100;
++    this->spec.format = AUDIO_S16SYS;
++    this->spec.channels = 2;
++    this->spec.samples = 2048;
++    SDL_CalculateAudioSpec(&this->spec);
++
++    
++    return 0;
++}
++
++static void ETHEREAL_CloseDevice(_THIS) {
++    TRACE();
++    struct SDL_PrivateAudioData *private = this->hidden;
++    audio_stream_request_t req = AUDIO_STREAM_DRAIN;
++    ioctl(private->device_fd, IO_AUDIO_REQUEST, &req);
++}
++
++static void ETHEREAL_PlayDevice(_THIS) {
++    TRACE();
++    struct SDL_PrivateAudioData *private = this->hidden;
++    const bool enabled = SDL_AtomicGet(&this->enabled) && !SDL_AtomicGet(&this->paused);
++
++    if (!enabled) {
++        audio_stream_request_t req = AUDIO_STREAM_STOP;
++        ioctl(private->device_fd, IO_AUDIO_REQUEST, &req);
++        private->ready = false;
++        return 0;
++    }
++
++    if (private->ready == false) {
++        int r = ETHEREAL_ConfigureDevice(private);
++        if (r != 0) {
++            fprintf(stderr, "Failed to configure device: %s\n", SDL_GetError());
++            return;
++        }
++        
++        audio_stream_request_t req = AUDIO_STREAM_PLAY;
++        ioctl(private->device_fd, IO_AUDIO_REQUEST, &req);
++    }
++
++    size_t samples = this->spec.size;
++    write(private->device_fd, (void*)private->mixbuf, samples);
++}
++
++static Uint8* ETHEREAL_GetDeviceBuf(_THIS) {
++    TRACE();
++    struct SDL_PrivateAudioData *hidden = this->hidden;
++    return hidden->mixbuf;
++}
++
++#else
++
++static int ETHEREAL_OpenDevice(_THIS,  const char *devname) {
++    TRACE();
++    this->hidden = SDL_malloc(sizeof(struct SDL_PrivateAudioData));
++
++    struct SDL_PrivateAudioData *private = this->hidden;
++
++    if (symphony_connect() != 0) {
++        return SDL_SetError("symphony_connect failed: %s", strerror(errno));
++    }
++
++    symphony_info_t info;
++    if (symphony_getInfo(&info) != 0) {
++        return SDL_SetError("symphony_getInfo failed: %s", strerror(errno));
++    }
++
++    if (info.num_devices == 0) {
++        return SDL_SetError("No devices available");
++    }
++
++    unsigned short target_stream = 0;
++    char *streamenv = SDL_getenv("SYMPHONY_DEFAULT_STREAM");
++    if (streamenv) {
++        target_stream = strtol(streamenv, NULL, 16);
++    }
++
++    fprintf(stderr, "AUDIO: opening target stream 0x%x\n", target_stream);
++
++    symphony_stream_info_t stream_info;
++    if (symphony_getStream(target_stream, &stream_info) != 0) {
++        return SDL_SetError("symphony_getStream failed: %s", strerror(errno));
++    }
++
++    this->spec.freq = stream_info.config.sample_rate;
++    this->spec.channels = stream_info.config.channels;
++    this->spec.samples = 2048;
++
++    if (stream_info.config.format == AUDIO_FORMAT_S16_LE) {
++        this->spec.format = AUDIO_S16SYS;
++    } else if (stream_info.config.format == AUDIO_FORMAT_S24_LE) {
++        return SDL_SetError("AUDIO_FORMAT_S24LE not supported");
++    } else if (stream_info.config.format == AUDIO_FORMAT_S32_LE) {
++        this->spec.format = AUDIO_S32SYS;
++    } else if (stream_info.config.format == AUDIO_FORMAT_F32_LE) {
++        this->spec.format = AUDIO_F32SYS;
++    } else {
++        return SDL_SetError("Unknown audio format");
++    }
++
++    SDL_CalculateAudioSpec(&this->spec);
++
++    fprintf(stderr, "create: %d format %d chan %d sample rate\n", stream_info.config.format, stream_info.config.channels, stream_info.config.sample_rate);
++    private->bufid = symphony_addBuffer(target_stream, stream_info.config.format, stream_info.config.sample_rate, stream_info.config.channels, this->spec.samples * this->spec.channels);
++    if (private->bufid < 0) {
++        return SDL_SetError("symphony_addBuffer failed: %s", strerror(errno));
++    }
++
++    private->mixbuf = SDL_malloc(this->spec.size);
++    private->ready = false;
++
++    return 0;
++}
++
++static void ETHEREAL_CloseDevice(_THIS) {
++    TRACE();
++    struct SDL_PrivateAudioData *private = this->hidden;
++    symphony_drain(private->bufid);
++}
++
++static void ETHEREAL_PlayDevice(_THIS) {
++    TRACE();
++    struct SDL_PrivateAudioData *private = this->hidden;
++    const bool enabled = SDL_AtomicGet(&this->enabled) && !SDL_AtomicGet(&this->paused);
++
++    if (!enabled) {
++        symphony_stop(private->bufid);
++        return;
++    }
++
++    symphony_start(private->bufid);
++    symphony_write(private->bufid, private->mixbuf, this->spec.samples * this->spec.channels);
++}
++
++static Uint8* ETHEREAL_GetDeviceBuf(_THIS) {
++    TRACE();
++    struct SDL_PrivateAudioData *hidden = this->hidden;
++    return hidden->mixbuf;
++}
++
++#endif
++
++static SDL_bool ETHEREAL_Init(SDL_AudioDriverImpl *impl) {
++    impl->OpenDevice = ETHEREAL_OpenDevice;
++    impl->CloseDevice = ETHEREAL_CloseDevice;
++    impl->PlayDevice = ETHEREAL_PlayDevice;
++    impl->GetDeviceBuf = ETHEREAL_GetDeviceBuf;
++
++    impl->ProvidesOwnCallbackThread = SDL_FALSE;
++    impl->HasCaptureSupport = SDL_FALSE;
++    impl->OnlyHasDefaultOutputDevice = SDL_TRUE;
++    impl->SupportsNonPow2Samples = SDL_TRUE;
++
++    return SDL_TRUE;
++}
++
++AudioBootStrap ETHEREALAUDIO_bootstrap = {
++    "ethereal", "Ethereal Audio Backend", ETHEREAL_Init, SDL_FALSE
++};
++
++#endif
+diff -Naur old_extract/SDL2-2.30.11/src/audio/ethereal/SDL_etherealaudio.h new_workspace/SDL2-2.30.11/src/audio/ethereal/SDL_etherealaudio.h
+--- a/src/audio/ethereal/SDL_etherealaudio.h	1969-12-31 18:00:00.000000000 -0600
++++ b/src/audio/ethereal/SDL_etherealaudio.h	2026-07-14 16:05:03.336063441 -0500
+@@ -0,0 +1,24 @@
++#include "../../SDL_internal.h"
++
++#ifndef SDL_etherealaudio_h
++#define SDL_etherealaudio_h
++
++#include <ethereal/audio.h>
++#include <ethereal/symphony.h>
++
++#include "../SDL_sysaudio.h"
++
++/* Hidden "this" pointer for the audio functions */
++#define _THIS   SDL_AudioDevice *this
++
++struct SDL_PrivateAudioData
++{
++    int device_fd;
++    symphony_buffer_id_t bufid;
++    Uint8 *mixbuf;
++    bool ready;
++};
++
++#endif /* SDL_fsaudio_h_ */
++
++/* vi: set ts=4 sw=4 expandtab: */
+diff -Naur old_extract/SDL2-2.30.11/src/audio/SDL_audio.c new_workspace/SDL2-2.30.11/src/audio/SDL_audio.c
+--- a/src/audio/SDL_audio.c	2025-01-01 09:48:45.000000000 -0600
++++ b/src/audio/SDL_audio.c	2026-07-25 11:38:22.015588073 -0500
+@@ -48,6 +48,9 @@
+ #ifdef SDL_AUDIO_DRIVER_ALSA
+     &ALSA_bootstrap,
+ #endif
++#ifdef SDL_AUDIO_DRIVER_ETHEREAL
++    &ETHEREALAUDIO_bootstrap,
++#endif
+ #ifdef SDL_AUDIO_DRIVER_SNDIO
+     &SNDIO_bootstrap,
+ #endif
+diff -Naur old_extract/SDL2-2.30.11/src/audio/SDL_sysaudio.h new_workspace/SDL2-2.30.11/src/audio/SDL_sysaudio.h
+--- a/src/audio/SDL_sysaudio.h	2025-01-01 09:48:45.000000000 -0600
++++ b/src/audio/SDL_sysaudio.h	2026-07-13 17:23:13.199135924 -0500
+@@ -184,6 +184,7 @@
+ extern AudioBootStrap JACK_bootstrap;
+ extern AudioBootStrap SNDIO_bootstrap;
+ extern AudioBootStrap NETBSDAUDIO_bootstrap;
++extern AudioBootStrap ETHEREALAUDIO_bootstrap;
+ extern AudioBootStrap DSP_bootstrap;
+ extern AudioBootStrap QSAAUDIO_bootstrap;
+ extern AudioBootStrap SUNAUDIO_bootstrap;
+diff -Naur old_extract/SDL2-2.30.11/src/libm/math_private.h new_workspace/SDL2-2.30.11/src/libm/math_private.h
+--- a/src/libm/math_private.h	2022-10-10 10:50:59.000000000 -0500
++++ b/src/libm/math_private.h	2025-07-05 18:57:19.190286484 -0500
+@@ -27,7 +27,7 @@
+ #define libm_hidden_def(x)
+ #define strong_alias(x, y)
+ 
+-#if !defined(__HAIKU__) && !defined(__PSP__) && !defined(__3DS__) && !defined(__PS2__) /* already defined in a system header. */
++#if !defined(__HAIKU__) && !defined(__PSP__) && !defined(__3DS__) && !defined(__PS2__) && !defined(__ETHEREAL__) && !defined(__ethereal__) /* already defined in a system header. */
+ typedef unsigned int u_int32_t;
+ #endif
+ 
+diff -Naur old_extract/SDL2-2.30.11/src/misc/ethereal/openurl.c new_workspace/SDL2-2.30.11/src/misc/ethereal/openurl.c
+--- a/src/misc/ethereal/openurl.c	1969-12-31 18:00:00.000000000 -0600
++++ b/src/misc/ethereal/openurl.c	2025-07-05 17:54:06.317806066 -0500
+@@ -0,0 +1,26 @@
++/*
++  Simple DirectMedia Layer
++  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
++
++  This software is provided 'as-is', without any express or implied
++  warranty.  In no event will the authors be held liable for any damages
++  arising from the use of this software.
++
++  Permission is granted to anyone to use this software for any purpose,
++  including commercial applications, and to alter it and redistribute it
++  freely, subject to the following restrictions:
++
++  1. The origin of this software must not be misrepresented; you must not
++     claim that you wrote the original software. If you use this software
++     in a product, an acknowledgment in the product documentation would be
++     appreciated but is not required.
++  2. Altered source versions must be plainly marked as such, and must not be
++     misrepresented as being the original software.
++  3. This notice may not be removed or altered from any source distribution.
++*/
++
++#include "../SDL_sysurl.h"
++
++int SDL_SYS_OpenURL(const char *url) {
++    return SDL_SetError("SDL_SYS_OpenURL: Not implemented");
++}
+\ No newline at end of file
+diff -Naur old_extract/SDL2-2.30.11/src/video/ethereal/SDL_etherealevents.c new_workspace/SDL2-2.30.11/src/video/ethereal/SDL_etherealevents.c
+--- a/src/video/ethereal/SDL_etherealevents.c	1969-12-31 18:00:00.000000000 -0600
++++ b/src/video/ethereal/SDL_etherealevents.c	2026-07-25 09:59:20.260195945 -0500
+@@ -0,0 +1,38 @@
++/*
++  Simple DirectMedia Layer
++  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
++
++  This software is provided 'as-is', without any express or implied
++  warranty.  In no event will the authors be held liable for any damages
++  arising from the use of this software.
++
++  Permission is granted to anyone to use this software for any purpose,
++  including commercial applications, and to alter it and redistribute it
++  freely, subject to the following restrictions:
++
++  1. The origin of this software must not be misrepresented; you must not
++     claim that you wrote the original software. If you use this software
++     in a product, an acknowledgment in the product documentation would be
++     appreciated but is not required.
++  2. Altered source versions must be plainly marked as such, and must not be
++     misrepresented as being the original software.
++  3. This notice may not be removed or altered from any source distribution.
++*/
++
++#include "../../SDL_internal.h"
++
++#ifdef SDL_VIDEO_DRIVER_ETHEREAL
++
++#include "SDL_etherealwindow.h"
++#include "SDL_etherealevents.h"
++
++void ETHEREAL_PumpEvents(_THIS) {
++    celestial_poll();
++}
++
++int ETHEREAL_WaitEventTimeout(_THIS, int timeout) {
++    celestial_pollTimeout(timeout);
++    return 0;
++}
++
++#endif
+diff -Naur old_extract/SDL2-2.30.11/src/video/ethereal/SDL_etherealevents.h new_workspace/SDL2-2.30.11/src/video/ethereal/SDL_etherealevents.h
+--- a/src/video/ethereal/SDL_etherealevents.h	1969-12-31 18:00:00.000000000 -0600
++++ b/src/video/ethereal/SDL_etherealevents.h	2026-07-25 09:28:15.623475990 -0500
+@@ -0,0 +1,32 @@
++/*
++  Simple DirectMedia Layer
++  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
++
++  This software is provided 'as-is', without any express or implied
++  warranty.  In no event will the authors be held liable for any damages
++  arising from the use of this software.
++
++  Permission is granted to anyone to use this software for any purpose,
++  including commercial applications, and to alter it and redistribute it
++  freely, subject to the following restrictions:
++
++  1. The origin of this software must not be misrepresented; you must not
++     claim that you wrote the original software. If you use this software
++     in a product, an acknowledgment in the product documentation would be
++     appreciated but is not required.
++  2. Altered source versions must be plainly marked as such, and must not be
++     misrepresented as being the original software.
++  3. This notice may not be removed or altered from any source distribution.
++*/
++
++#include "../../SDL_internal.h"
++
++#ifndef SDL_etherealevents_h_
++#define SDL_etherealevents_h_
++
++#include "../SDL_sysvideo.h"
++
++void ETHEREAL_PumpEvents(_THIS);
++int ETHEREAL_WaitEventTimeout(_THIS, int timeout);
++
++#endif
+diff -Naur old_extract/SDL2-2.30.11/src/video/ethereal/SDL_etherealframebuffer.c new_workspace/SDL2-2.30.11/src/video/ethereal/SDL_etherealframebuffer.c
+--- a/src/video/ethereal/SDL_etherealframebuffer.c	1969-12-31 18:00:00.000000000 -0600
++++ b/src/video/ethereal/SDL_etherealframebuffer.c	2026-07-25 10:57:58.004800842 -0500
+@@ -0,0 +1,102 @@
++/*
++  Simple DirectMedia Layer
++  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
++
++  This software is provided 'as-is', without any express or implied
++  warranty.  In no event will the authors be held liable for any damages
++  arising from the use of this software.
++
++  Permission is granted to anyone to use this software for any purpose,
++  including commercial applications, and to alter it and redistribute it
++  freely, subject to the following restrictions:
++
++  1. The origin of this software must not be misrepresented; you must not
++     claim that you wrote the original software. If you use this software
++     in a product, an acknowledgment in the product documentation would be
++     appreciated but is not required.
++  2. Altered source versions must be plainly marked as such, and must not be
++     misrepresented as being the original software.
++  3. This notice may not be removed or altered from any source distribution.
++*/
++
++#include "../../SDL_internal.h"
++
++#ifdef SDL_VIDEO_DRIVER_ETHEREAL
++
++#include "SDL_etherealframebuffer.h"
++#include "SDL_etherealwindow.h"
++#include <ethereal/celestial.h>
++#include <graphics/gfx.h>
++
++#if (defined(__i386__) || defined(__x86_64__)) && !defined(__NO_SSE)
++#include <emmintrin.h>
++__m128i alpha_mask;
++
++__attribute__((constructor)) void ETHEREAL_InitSSEMask() {
++    alpha_mask = _mm_set1_epi32((int)0xFF000000);
++}
++#endif 
++
++int ETHEREAL_CreateWindowFramebuffer(_THIS, SDL_Window *window, Uint32 *format, void **pixels, int *pitch) {
++    SDL_WindowData *wdata = window->driverdata;
++    gfx_context_t *ctx = celestial_getGraphicsContext(wdata->window);
++
++    *format = SDL_PIXELFORMAT_XRGB8888;
++    *pixels = ctx->backbuffer;
++    *pitch = (int)ctx->pitch;
++
++    gfx_clear(ctx, GFX_RGB(0,0,0));
++    
++    return 0;
++}
++
++void ETHEREAL_DestroyWindowFramebuffer(_THIS, SDL_Window *window) {
++    // TODO
++}
++
++int ETHEREAL_UpdateWindowFramebuffer(_THIS, SDL_Window *window, const SDL_Rect *rects, int numrects) {
++    SDL_WindowData *wdata = window->driverdata;
++    gfx_context_t *ctx = celestial_getGraphicsContext(wdata->window);
++
++    // TODO: use the rectangles
++
++    // !!! THIS IS A SEVERE HACK. Forces the background to be fully solid since no matter what I could not get SDL to cooperate on this.
++#if (defined(__i386__) || defined(__x86_64__)) && !defined(__NO_SSE)
++    uint8_t *row = (uint8_t*)ctx->backbuffer;
++
++    int vec_width = ctx->width / 4;
++    int rem = ctx->width % 4;
++
++    for (unsigned y = 0; y < ctx->height; y++) {
++        uint32_t *pixels = (uint32_t*)row;
++
++        for (int x = 0; x < vec_width; x++) {
++            __m128i data = _mm_loadu_si128((__m128i*)pixels);
++            data = _mm_or_si128(data, alpha_mask);
++            _mm_storeu_si128((__m128i*)pixels, data);
++            pixels += 4;
++        }
++
++        for (int x = 0; x < rem; x++) {
++            *pixels++ |= 0xFF000000;
++        }
++
++        row += ctx->pitch;
++    }
++#else
++    uint32_t *buffer = ctx->backbuffer;
++    for (unsigned i = 0; i < ctx->height; i++) {
++        for (unsigned j = 0; j < ctx->width; j++) {
++            buffer[j] |= 0xFF000000;
++        }
++
++        buffer = ((uint8_t*)buffer + ctx->pitch);
++    }
++#endif
++
++    gfx_render(ctx);
++    celestial_flip(wdata->window);
++    return 0;
++}
++
++#endif
+diff -Naur old_extract/SDL2-2.30.11/src/video/ethereal/SDL_etherealframebuffer.h new_workspace/SDL2-2.30.11/src/video/ethereal/SDL_etherealframebuffer.h
+--- a/src/video/ethereal/SDL_etherealframebuffer.h	1969-12-31 18:00:00.000000000 -0600
++++ b/src/video/ethereal/SDL_etherealframebuffer.h	2026-07-25 09:58:16.184154015 -0500
+@@ -0,0 +1,33 @@
++/*
++  Simple DirectMedia Layer
++  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
++
++  This software is provided 'as-is', without any express or implied
++  warranty.  In no event will the authors be held liable for any damages
++  arising from the use of this software.
++
++  Permission is granted to anyone to use this software for any purpose,
++  including commercial applications, and to alter it and redistribute it
++  freely, subject to the following restrictions:
++
++  1. The origin of this software must not be misrepresented; you must not
++     claim that you wrote the original software. If you use this software
++     in a product, an acknowledgment in the product documentation would be
++     appreciated but is not required.
++  2. Altered source versions must be plainly marked as such, and must not be
++     misrepresented as being the original software.
++  3. This notice may not be removed or altered from any source distribution.
++*/
++
++#include "../../SDL_internal.h"
++
++#ifndef SDL_etherealframebuffer_h_
++#define SDL_etherealframebuffer_h_
++
++#include "../SDL_sysvideo.h"
++
++int ETHEREAL_CreateWindowFramebuffer(_THIS, SDL_Window *window, Uint32 *format, void **pixels, int *pitch);
++void ETHEREAL_DestroyWindowFramebuffer(_THIS, SDL_Window *window);
++int ETHEREAL_UpdateWindowFramebuffer(_THIS, SDL_Window *window, const SDL_Rect *rects, int numrects);
++
++#endif
+diff -Naur old_extract/SDL2-2.30.11/src/video/ethereal/SDL_etherealkeyboard.c new_workspace/SDL2-2.30.11/src/video/ethereal/SDL_etherealkeyboard.c
+--- a/src/video/ethereal/SDL_etherealkeyboard.c	1969-12-31 18:00:00.000000000 -0600
++++ b/src/video/ethereal/SDL_etherealkeyboard.c	2026-07-25 09:57:06.613137558 -0500
+@@ -0,0 +1,160 @@
++/*
++  Simple DirectMedia Layer
++  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
++
++  This software is provided 'as-is', without any express or implied
++  warranty.  In no event will the authors be held liable for any damages
++  arising from the use of this software.
++
++  Permission is granted to anyone to use this software for any purpose,
++  including commercial applications, and to alter it and redistribute it
++  freely, subject to the following restrictions:
++
++  1. The origin of this software must not be misrepresented; you must not
++     claim that you wrote the original software. If you use this software
++     in a product, an acknowledgment in the product documentation would be
++     appreciated but is not required.
++  2. Altered source versions must be plainly marked as such, and must not be
++     misrepresented as being the original software.
++  3. This notice may not be removed or altered from any source distribution.
++*/
++
++#include "../../SDL_internal.h"
++
++#ifdef SDL_VIDEO_DRIVER_ETHEREAL
++
++#include "../../events/SDL_keyboard_c.h"
++#include "SDL_etherealkeyboard.h"
++#include <ethereal/keyboard.h>
++#include <ethereal/celestial.h>
++
++
++#define SDL_ETHEREAL_KEY(src, dst) { (src), (dst) }
++
++struct ethereal_keymap {
++    key_scancode_t sc;
++    SDL_Keycode key;
++};
++
++static struct ethereal_keymap sdl_ethereal_keymap[] = {
++    SDL_ETHEREAL_KEY('1', SDL_SCANCODE_1),
++    SDL_ETHEREAL_KEY('2', SDL_SCANCODE_2),
++    SDL_ETHEREAL_KEY('3', SDL_SCANCODE_3),
++    SDL_ETHEREAL_KEY('4', SDL_SCANCODE_4),
++    SDL_ETHEREAL_KEY('5', SDL_SCANCODE_5),
++    SDL_ETHEREAL_KEY('6', SDL_SCANCODE_6),
++    SDL_ETHEREAL_KEY('7', SDL_SCANCODE_7),
++    SDL_ETHEREAL_KEY('8', SDL_SCANCODE_8),
++    SDL_ETHEREAL_KEY('9', SDL_SCANCODE_9),
++    SDL_ETHEREAL_KEY('0', SDL_SCANCODE_0),
++
++    SDL_ETHEREAL_KEY('-', SDL_SCANCODE_MINUS),
++    SDL_ETHEREAL_KEY('=', SDL_SCANCODE_EQUALS),
++    SDL_ETHEREAL_KEY('\b', SDL_SCANCODE_BACKSPACE),
++    SDL_ETHEREAL_KEY('\t', SDL_SCANCODE_TAB),
++
++    SDL_ETHEREAL_KEY('q', SDL_SCANCODE_Q),
++    SDL_ETHEREAL_KEY('w', SDL_SCANCODE_W),
++    SDL_ETHEREAL_KEY('e', SDL_SCANCODE_E),
++    SDL_ETHEREAL_KEY('r', SDL_SCANCODE_R),
++    SDL_ETHEREAL_KEY('t', SDL_SCANCODE_T),
++    SDL_ETHEREAL_KEY('y', SDL_SCANCODE_Y),
++    SDL_ETHEREAL_KEY('u', SDL_SCANCODE_U),
++    SDL_ETHEREAL_KEY('i', SDL_SCANCODE_I),
++    SDL_ETHEREAL_KEY('o', SDL_SCANCODE_O),
++    SDL_ETHEREAL_KEY('p', SDL_SCANCODE_P),
++
++    SDL_ETHEREAL_KEY('[', SDL_SCANCODE_LEFTBRACKET),
++    SDL_ETHEREAL_KEY(']', SDL_SCANCODE_RIGHTBRACKET),
++    SDL_ETHEREAL_KEY('\r', SDL_SCANCODE_RETURN),
++
++    SDL_ETHEREAL_KEY('a', SDL_SCANCODE_A),
++    SDL_ETHEREAL_KEY('s', SDL_SCANCODE_S),
++    SDL_ETHEREAL_KEY('d', SDL_SCANCODE_D),
++    SDL_ETHEREAL_KEY('f', SDL_SCANCODE_F),
++    SDL_ETHEREAL_KEY('g', SDL_SCANCODE_G),
++    SDL_ETHEREAL_KEY('h', SDL_SCANCODE_H),
++    SDL_ETHEREAL_KEY('j', SDL_SCANCODE_J),
++    SDL_ETHEREAL_KEY('k', SDL_SCANCODE_K),
++    SDL_ETHEREAL_KEY('l', SDL_SCANCODE_L),
++
++    SDL_ETHEREAL_KEY(';', SDL_SCANCODE_SEMICOLON),
++    SDL_ETHEREAL_KEY('\'', SDL_SCANCODE_APOSTROPHE),
++    SDL_ETHEREAL_KEY('`', SDL_SCANCODE_GRAVE),
++
++    SDL_ETHEREAL_KEY('\\', SDL_SCANCODE_BACKSLASH),
++
++    SDL_ETHEREAL_KEY('z', SDL_SCANCODE_Z),
++    SDL_ETHEREAL_KEY('x', SDL_SCANCODE_X),
++    SDL_ETHEREAL_KEY('c', SDL_SCANCODE_C),
++    SDL_ETHEREAL_KEY('v', SDL_SCANCODE_V),
++    SDL_ETHEREAL_KEY('b', SDL_SCANCODE_B),
++    SDL_ETHEREAL_KEY('n', SDL_SCANCODE_N),
++    SDL_ETHEREAL_KEY('m', SDL_SCANCODE_M),
++
++    SDL_ETHEREAL_KEY(',', SDL_SCANCODE_COMMA),
++    SDL_ETHEREAL_KEY('.', SDL_SCANCODE_PERIOD),
++    SDL_ETHEREAL_KEY('/', SDL_SCANCODE_SLASH),
++
++    SDL_ETHEREAL_KEY('*', SDL_SCANCODE_KP_MULTIPLY),
++    SDL_ETHEREAL_KEY(' ', SDL_SCANCODE_SPACE),
++
++    SDL_ETHEREAL_KEY(SCANCODE_ESCAPE, SDL_SCANCODE_ESCAPE),
++
++    SDL_ETHEREAL_KEY(SCANCODE_F1,  SDL_SCANCODE_F1),
++    SDL_ETHEREAL_KEY(SCANCODE_F2,  SDL_SCANCODE_F2),
++    SDL_ETHEREAL_KEY(SCANCODE_F3,  SDL_SCANCODE_F3),
++    SDL_ETHEREAL_KEY(SCANCODE_F4,  SDL_SCANCODE_F4),
++    SDL_ETHEREAL_KEY(SCANCODE_F5,  SDL_SCANCODE_F5),
++    SDL_ETHEREAL_KEY(SCANCODE_F6,  SDL_SCANCODE_F6),
++    SDL_ETHEREAL_KEY(SCANCODE_F7,  SDL_SCANCODE_F7),
++    SDL_ETHEREAL_KEY(SCANCODE_F8,  SDL_SCANCODE_F8),
++    SDL_ETHEREAL_KEY(SCANCODE_F9,  SDL_SCANCODE_F9),
++    SDL_ETHEREAL_KEY(SCANCODE_F10, SDL_SCANCODE_F10),
++    SDL_ETHEREAL_KEY(SCANCODE_F11, SDL_SCANCODE_F11),
++    SDL_ETHEREAL_KEY(SCANCODE_F12, SDL_SCANCODE_F12),
++
++    SDL_ETHEREAL_KEY(SCANCODE_DEL, SDL_SCANCODE_DELETE),
++    
++    SDL_ETHEREAL_KEY(SCANCODE_RIGHT_ARROW, SDL_SCANCODE_RIGHT), 
++    SDL_ETHEREAL_KEY(SCANCODE_LEFT_ARROW,  SDL_SCANCODE_LEFT),
++    SDL_ETHEREAL_KEY(SCANCODE_UP_ARROW,    SDL_SCANCODE_UP),
++    SDL_ETHEREAL_KEY(SCANCODE_DOWN_ARROW,  SDL_SCANCODE_DOWN),
++
++    SDL_ETHEREAL_KEY(SCANCODE_LEFT_SHIFT, SDL_SCANCODE_LSHIFT), SDL_ETHEREAL_KEY(SCANCODE_RIGHT_SHIFT, SDL_SCANCODE_RSHIFT),
++    SDL_ETHEREAL_KEY(SCANCODE_LEFT_ALT,   SDL_SCANCODE_LALT),   SDL_ETHEREAL_KEY(SCANCODE_RIGHT_ALT,   SDL_SCANCODE_RALT),
++    SDL_ETHEREAL_KEY(SCANCODE_LEFT_SUPER, SDL_SCANCODE_LGUI),   SDL_ETHEREAL_KEY(SCANCODE_RIGHT_SUPER, SDL_SCANCODE_RGUI),
++    SDL_ETHEREAL_KEY(SCANCODE_LEFT_CTRL,  SDL_SCANCODE_LCTRL),  SDL_ETHEREAL_KEY(SCANCODE_RIGHT_CTRL,  SDL_SCANCODE_RCTRL)
++};
++
++/* Global keyboard */
++/* TODO: when window server gets expanded, re-evaluate */
++static keyboard_t *keyboard = NULL;
++
++void ETHEREAL_KeyboardInit(_THIS) {
++    keyboard = keyboard_create();
++}
++
++
++void ETHEREAL_KeyboardProcess(SDL_Window *window, void *event) {
++    // TODO upgrade this
++    celestial_event_key_t *key = event;
++
++    keyboard_event_t ev;
++    if (keyboard_event2(keyboard, &key->ev, &ev)) {
++        return;
++    }
++
++    for (int i = 0; i < sizeof(sdl_ethereal_keymap) / sizeof(sdl_ethereal_keymap[0]); i++) {
++        if (sdl_ethereal_keymap[i].sc == ev.scancode) {
++            SDL_SendKeyboardKey((ev.type == KEYBOARD_EVENT_PRESS) ? SDL_PRESSED:SDL_RELEASED, sdl_ethereal_keymap[i].key);
++        }
++    }
++
++    if (ev.ascii != 0 && ev.type == KEYBOARD_EVENT_PRESS) {
++        char text[2] = { ev.ascii, 0 };
++        SDL_SendKeyboardText(text);
++    }
++}
++
++#endif
+diff -Naur old_extract/SDL2-2.30.11/src/video/ethereal/SDL_etherealkeyboard.h new_workspace/SDL2-2.30.11/src/video/ethereal/SDL_etherealkeyboard.h
+--- a/src/video/ethereal/SDL_etherealkeyboard.h	1969-12-31 18:00:00.000000000 -0600
++++ b/src/video/ethereal/SDL_etherealkeyboard.h	2026-07-25 09:47:48.395304500 -0500
+@@ -0,0 +1,32 @@
++/*
++  Simple DirectMedia Layer
++  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
++
++  This software is provided 'as-is', without any express or implied
++  warranty.  In no event will the authors be held liable for any damages
++  arising from the use of this software.
++
++  Permission is granted to anyone to use this software for any purpose,
++  including commercial applications, and to alter it and redistribute it
++  freely, subject to the following restrictions:
++
++  1. The origin of this software must not be misrepresented; you must not
++     claim that you wrote the original software. If you use this software
++     in a product, an acknowledgment in the product documentation would be
++     appreciated but is not required.
++  2. Altered source versions must be plainly marked as such, and must not be
++     misrepresented as being the original software.
++  3. This notice may not be removed or altered from any source distribution.
++*/
++
++#include "../../SDL_internal.h"
++
++#ifndef SDL_etherealkeyboard_h_
++#define SDL_etherealkeyboard_h_
++
++#include "../SDL_sysvideo.h"
++
++void ETHEREAL_KeyboardInit(_THIS);
++void ETHEREAL_KeyboardProcess(SDL_Window *window, void *event);
++
++#endif
+diff -Naur old_extract/SDL2-2.30.11/src/video/ethereal/SDL_etherealmodes.c new_workspace/SDL2-2.30.11/src/video/ethereal/SDL_etherealmodes.c
+--- a/src/video/ethereal/SDL_etherealmodes.c	1969-12-31 18:00:00.000000000 -0600
++++ b/src/video/ethereal/SDL_etherealmodes.c	2026-07-25 09:13:25.113452672 -0500
+@@ -0,0 +1,66 @@
++/*
++  Simple DirectMedia Layer
++  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
++
++  This software is provided 'as-is', without any express or implied
++  warranty.  In no event will the authors be held liable for any damages
++  arising from the use of this software.
++
++  Permission is granted to anyone to use this software for any purpose,
++  including commercial applications, and to alter it and redistribute it
++  freely, subject to the following restrictions:
++
++  1. The origin of this software must not be misrepresented; you must not
++     claim that you wrote the original software. If you use this software
++     in a product, an acknowledgment in the product documentation would be
++     appreciated but is not required.
++  2. Altered source versions must be plainly marked as such, and must not be
++     misrepresented as being the original software.
++  3. This notice may not be removed or altered from any source distribution.
++*/
++
++#include "../../SDL_internal.h"
++
++#ifdef SDL_VIDEO_DRIVER_ETHEREAL
++
++#include "SDL_etherealmodes.h"
++
++#include <kernel/gfx/video.h>
++#include <sys/ioctl.h>
++#include <sys/fcntl.h>
++#include <unistd.h>
++#include <string.h>
++#include <errno.h>
++#include <stdio.h>
++
++bool ETHEREAL_InitModes(_THIS) {
++    int fb = open("/device/fb0", O_RDONLY);
++    if (fb < 0) {
++        return SDL_SetError("Failed to open /device/fb0: %s\n", strerror(errno));
++    }
++
++    video_info_t info;
++    if (ioctl(fb, IO_VIDEO_GET_INFO, &info) < 0) {
++        return SDL_SetError("IO_VIDEO_GET_INFO failed: %s\n", strerror(errno));
++    }
++
++    close(fb);
++
++    SDL_DisplayMode mode = {
++        .format = SDL_PIXELFORMAT_XRGB8888,
++        .w = (int)info.screen_width,
++        .h = (int)info.screen_height,
++        .refresh_rate = 60.0f,
++        .driverdata = NULL
++    };
++
++    SDL_AddBasicVideoDisplay(&mode);
++    return true;
++}
++
++
++void ETHEREAL_QuitModes(_THIS) {
++    // stub
++}
++
++#endif
+diff -Naur old_extract/SDL2-2.30.11/src/video/ethereal/SDL_etherealmodes.h new_workspace/SDL2-2.30.11/src/video/ethereal/SDL_etherealmodes.h
+--- a/src/video/ethereal/SDL_etherealmodes.h	1969-12-31 18:00:00.000000000 -0600
++++ b/src/video/ethereal/SDL_etherealmodes.h	2026-07-25 09:07:52.551153213 -0500
+@@ -0,0 +1,33 @@
++/*
++  Simple DirectMedia Layer
++  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
++
++  This software is provided 'as-is', without any express or implied
++  warranty.  In no event will the authors be held liable for any damages
++  arising from the use of this software.
++
++  Permission is granted to anyone to use this software for any purpose,
++  including commercial applications, and to alter it and redistribute it
++  freely, subject to the following restrictions:
++
++  1. The origin of this software must not be misrepresented; you must not
++     claim that you wrote the original software. If you use this software
++     in a product, an acknowledgment in the product documentation would be
++     appreciated but is not required.
++  2. Altered source versions must be plainly marked as such, and must not be
++     misrepresented as being the original software.
++  3. This notice may not be removed or altered from any source distribution.
++*/
++
++#include "../../SDL_internal.h"
++
++#ifndef SDL_etherealmodes_h_
++#define SDL_etherealmodes_h_
++
++#include "../SDL_sysvideo.h"
++#include <stdbool.h>
++
++bool ETHEREAL_InitModes(SDL_VideoDevice *_this);
++void ETHEREAL_QuitModes(SDL_VideoDevice *_this);
++
++#endif
+diff -Naur old_extract/SDL2-2.30.11/src/video/ethereal/SDL_etherealmouse.c new_workspace/SDL2-2.30.11/src/video/ethereal/SDL_etherealmouse.c
+--- a/src/video/ethereal/SDL_etherealmouse.c	1969-12-31 18:00:00.000000000 -0600
++++ b/src/video/ethereal/SDL_etherealmouse.c	2026-07-25 09:57:41.626032876 -0500
+@@ -0,0 +1,72 @@
++/*
++  Simple DirectMedia Layer
++  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
++
++  This software is provided 'as-is', without any express or implied
++  warranty.  In no event will the authors be held liable for any damages
++  arising from the use of this software.
++
++  Permission is granted to anyone to use this software for any purpose,
++  including commercial applications, and to alter it and redistribute it
++  freely, subject to the following restrictions:
++
++  1. The origin of this software must not be misrepresented; you must not
++     claim that you wrote the original software. If you use this software
++     in a product, an acknowledgment in the product documentation would be
++     appreciated but is not required.
++  2. Altered source versions must be plainly marked as such, and must not be
++     misrepresented as being the original software.
++  3. This notice may not be removed or altered from any source distribution.
++*/
++
++#include "../../SDL_internal.h"
++
++#ifdef SDL_VIDEO_DRIVER_ETHEREAL
++
++#include "../../events/SDL_mouse_c.h"
++#include "SDL_etherealmouse.h"
++#include "SDL_etherealwindow.h"
++#include <ethereal/celestial.h>
++#include <errno.h>
++
++SDL_Cursor *ETHEREAL_CreateSystemCursor(SDL_SystemCursor id) {
++    SDL_Cursor *cur = SDL_calloc(1, sizeof(SDL_Cursor));
++    return cur;
++}
++
++void ETHEREAL_FreeCursor(SDL_Cursor *cursor) {
++    SDL_free(cursor);
++}
++
++int ETHEREAL_ShowCursor(SDL_Cursor *cursor) {
++    // TODO
++    return 0;
++}
++
++int ETHEREAL_SetRelativeMouseMode(SDL_bool enabled) {
++    SDL_Window *window = SDL_GetMouseFocus();
++    if (!window) {
++        return 0;
++    }
++
++    SDL_WindowData *window_data = (SDL_WindowData*)window->driverdata;
++    window_t *c_window = window_data->window;
++
++    int r = celestial_setMouseCapture(c_window, enabled);
++    if (r != 0) {
++        return SDL_SetError("celestial_setMouseCapture failed with error: %s", strerror(errno));
++    }
++
++    return 0;
++}
++
++void ETHEREAL_MouseInit(_THIS) {
++    SDL_Mouse *mouse = SDL_GetMouse();
++
++    mouse->CreateSystemCursor = ETHEREAL_CreateSystemCursor;
++    mouse->FreeCursor = ETHEREAL_FreeCursor;
++    mouse->ShowCursor = ETHEREAL_ShowCursor;
++    mouse->SetRelativeMouseMode = ETHEREAL_SetRelativeMouseMode;
++}
++
++#endif
+diff -Naur old_extract/SDL2-2.30.11/src/video/ethereal/SDL_etherealmouse.h new_workspace/SDL2-2.30.11/src/video/ethereal/SDL_etherealmouse.h
+--- a/src/video/ethereal/SDL_etherealmouse.h	1969-12-31 18:00:00.000000000 -0600
++++ b/src/video/ethereal/SDL_etherealmouse.h	2026-07-25 09:02:01.185214463 -0500
+@@ -0,0 +1,31 @@
++/*
++  Simple DirectMedia Layer
++  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
++
++  This software is provided 'as-is', without any express or implied
++  warranty.  In no event will the authors be held liable for any damages
++  arising from the use of this software.
++
++  Permission is granted to anyone to use this software for any purpose,
++  including commercial applications, and to alter it and redistribute it
++  freely, subject to the following restrictions:
++
++  1. The origin of this software must not be misrepresented; you must not
++     claim that you wrote the original software. If you use this software
++     in a product, an acknowledgment in the product documentation would be
++     appreciated but is not required.
++  2. Altered source versions must be plainly marked as such, and must not be
++     misrepresented as being the original software.
++  3. This notice may not be removed or altered from any source distribution.
++*/
++
++#include "../../SDL_internal.h"
++
++#ifndef SDL_etherealmouse_h_
++#define SDL_etherealmouse_h_
++
++#include "../SDL_sysvideo.h"
++
++void ETHEREAL_MouseInit(SDL_VideoDevice *_this);
++
++#endif
+diff -Naur old_extract/SDL2-2.30.11/src/video/ethereal/SDL_etherealopengl.c new_workspace/SDL2-2.30.11/src/video/ethereal/SDL_etherealopengl.c
+--- a/src/video/ethereal/SDL_etherealopengl.c	1969-12-31 18:00:00.000000000 -0600
++++ b/src/video/ethereal/SDL_etherealopengl.c	2026-07-25 13:02:10.423873750 -0500
+@@ -0,0 +1,229 @@
++/*
++  Simple DirectMedia Layer
++  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
++
++  This software is provided 'as-is', without any express or implied
++  warranty.  In no event will the authors be held liable for any damages
++  arising from the use of this software.
++
++  Permission is granted to anyone to use this software for any purpose,
++  including commercial applications, and to alter it and redistribute it
++  freely, subject to the following restrictions:
++
++  1. The origin of this software must not be misrepresented; you must not
++     claim that you wrote the original software. If you use this software
++     in a product, an acknowledgment in the product documentation would be
++     appreciated but is not required.
++  2. Altered source versions must be plainly marked as such, and must not be
++     misrepresented as being the original software.
++  3. This notice may not be removed or altered from any source distribution.
++*/
++
++#include "../../SDL_internal.h"
++
++#ifdef SDL_VIDEO_DRIVER_ETHEREAL
++#ifdef SDL_VIDEO_OPENGL
++
++#include "SDL_etherealopengl.h"
++#include "SDL_etherealwindow.h"
++#include <dlfcn.h>
++
++#if (defined(__i386__) || defined(__x86_64__)) && !defined(__NO_SSE)
++#include <emmintrin.h>
++static __m128i alpha_mask;
++
++__attribute__((constructor)) void ETHEREAL_InitGLSSEMask() {
++    alpha_mask = _mm_set1_epi32((int)0xFF000000);
++}
++#endif 
++
++int ETHEREAL_GL_LoadLibrary(_THIS, const char *path) {
++    if (_this->gl_config.driver_loaded) {
++        return SDL_SetError("OpenGL library is already loaded");
++    }
++
++    _this->gl_config.driver_loaded = 1;
++    return 0;
++}
++
++void ETHEREAL_GL_UnloadLibrary(_THIS) {
++    _this->gl_config.driver_loaded = 0;
++}
++
++SDL_GLContext ETHEREAL_GL_CreateContext(_THIS, SDL_Window *window) {
++    SDL_GLData *data = SDL_calloc(1, sizeof(SDL_GLData));
++    data->window = window;
++
++    int depth_bits;
++    if (_this->gl_config.depth_size <= 0) {
++        depth_bits = 0;
++    } else if (_this->gl_config.depth_size <= 16) {
++        depth_bits = 16;
++    } else if (_this->gl_config.depth_size <= 24) {
++        depth_bits = 24;
++    } else {
++        depth_bits = 32;
++    }
++
++    int stencil_bits = (_this->gl_config.stencil_size <= 0) ? 0 : 8;
++    int accum_bits = (_this->gl_config.accum_alpha_size+_this->gl_config.accum_red_size+_this->gl_config.accum_green_size+_this->gl_config.accum_blue_size);
++    accum_bits = (accum_bits <= 0) ? 0 : 16;
++    
++    int profile;
++    if (_this->gl_config.profile_mask == SDL_GL_CONTEXT_PROFILE_CORE) {
++        profile = OSMESA_CORE_PROFILE;
++    } else if (_this->gl_config.profile_mask == 0 || _this->gl_config.profile_mask == SDL_GL_CONTEXT_PROFILE_COMPATIBILITY) {
++        profile = OSMESA_COMPAT_PROFILE;
++    } else {
++        profile = 0;
++    }
++
++    // taken from https://github.com/Bananymous/banan-os/blob/main/ports/SDL3/patches/0001-add-banan_os-support.patch
++    int attributes[] = {
++        OSMESA_FORMAT, OSMESA_BGRA,
++        OSMESA_DEPTH_BITS, depth_bits,
++        OSMESA_STENCIL_BITS, stencil_bits,
++        OSMESA_ACCUM_BITS, accum_bits,
++        OSMESA_PROFILE, profile,
++        OSMESA_CONTEXT_MAJOR_VERSION, _this->gl_config.major_version,
++        OSMESA_CONTEXT_MINOR_VERSION, _this->gl_config.minor_version,
++        0
++    };
++
++    OSMesaContext sharelist = NULL;
++    if (_this->gl_config.share_with_current_context) {
++        SDL_GLData *current = (SDL_GLData*)SDL_GL_GetCurrentContext();
++        if (current != NULL) {
++            sharelist = current->context;
++        }
++    }
++
++    OSMesaContext context = OSMesaCreateContextAttribs(attributes, sharelist);
++    if (!context) {
++        SDL_free(data);
++        SDL_SetError("OSMesaCreateContext call failed");
++        return NULL;
++    }
++    
++    data->context = context;
++
++    if (ETHEREAL_GL_MakeCurrent(_this, window, (SDL_GLContext)data)) {
++        SDL_free(data);
++        OSMesaDestroyContext(context);
++        return NULL;
++    }
++
++    return (SDL_GLContext)data;
++}
++
++void ETHEREAL_GL_DeleteContext(_THIS, SDL_GLContext context) {
++    SDL_GLData *data = (SDL_GLData*)context;
++    SDL_WindowData *wdata = data->window->driverdata;
++
++    if (wdata->gl_context == context) {
++        // need to set to NULL
++        if (ETHEREAL_GL_MakeCurrent(_this, data->window, NULL)) {
++            SDL_LogError(SDL_LOG_CATEGORY_VIDEO, "ETHEREAL_GL_MakeCurrent failed to switch context to NULL");
++            return;
++        }
++    }
++
++    OSMesaDestroyContext(data->context);
++    SDL_free(data);
++}
++
++int ETHEREAL_GL_SwapWindow(_THIS, SDL_Window *window) {
++    static void (*glFinish)() = NULL;
++    if (glFinish == NULL) {
++        glFinish = OSMesaGetProcAddress("glFinish");
++        if (glFinish == NULL) {
++            return SDL_SetError("could not locate glFinish");
++        }
++    }
++    
++    glFinish();
++    
++    SDL_WindowData *wdata = window->driverdata;
++    
++    gfx_context_t *ctx = celestial_getGraphicsContext(wdata->window);
++#if (defined(__i386__) || defined(__x86_64__)) && !defined(__NO_SSE)
++    uint8_t *row = (uint8_t*)ctx->backbuffer;
++
++    int vec_width = ctx->width / 4;
++    int rem = ctx->width % 4;
++
++    for (unsigned y = 0; y < ctx->height; y++) {
++        uint32_t *pixels = (uint32_t*)row;
++
++        for (int x = 0; x < vec_width; x++) {
++            __m128i data = _mm_loadu_si128((__m128i*)pixels);
++            data = _mm_or_si128(data, alpha_mask);
++            _mm_storeu_si128((__m128i*)pixels, data);
++            pixels += 4;
++        }
++
++        for (int x = 0; x < rem; x++) {
++            *pixels++ |= 0xFF000000;
++        }
++
++        row += ctx->pitch;
++    }
++#else
++    uint32_t *buffer = ctx->backbuffer;
++    for (unsigned i = 0; i < ctx->height; i++) {
++        for (unsigned j = 0; j < ctx->width; j++) {
++            buffer[j] |= 0xFF000000;
++        }
++
++        buffer = ((uint8_t*)buffer + ctx->pitch);
++    }
++#endif
++
++    gfx_render(ctx);
++    celestial_flip(wdata->window);
++
++    return 0;
++}
++
++int ETHEREAL_GL_MakeCurrent(_THIS, SDL_Window *window, SDL_GLContext context) {
++    if (context == NULL) {
++        // called on ETHEREAL_GL_DeleteContext
++        if (!OSMesaMakeCurrent(NULL, NULL, GL_UNSIGNED_BYTE, 0, 0)) {
++            return SDL_SetError("OSMesaMakeCurrent failed while unsetting context");
++        }
++
++        if (window == NULL) {
++            window = SDL_GL_GetCurrentWindow();
++        }
++
++        if (window) {
++            SDL_WindowData *wdata = window->driverdata;
++            wdata->gl_context = NULL;
++        }
++
++        return 0;
++    }
++
++    SDL_WindowData *wdata = window->driverdata;
++    SDL_GLData *data = context;
++
++    gfx_context_t *ctx = celestial_getGraphicsContext(wdata->window);
++
++    if (!OSMesaMakeCurrent(data->context, ctx->backbuffer, GL_UNSIGNED_BYTE, GFX_WIDTH(ctx), GFX_HEIGHT(ctx))) {
++        return SDL_SetError("OSMesaMakeCurrent encountered an error");
++    }
++
++    OSMesaPixelStore(OSMESA_Y_UP, 0);
++    OSMesaPixelStore(OSMESA_ROW_LENGTH, ctx->pitch / 4);
++
++    wdata->gl_context = context;
++    return 0;
++}
++
++void *ETHEREAL_GL_GetProcAddress(_THIS, const char *proc) {
++    void *addr = (void*)OSMesaGetProcAddress(proc);
++    return addr;
++}
++
++#endif
++#endif
+diff -Naur old_extract/SDL2-2.30.11/src/video/ethereal/SDL_etherealopengl.h new_workspace/SDL2-2.30.11/src/video/ethereal/SDL_etherealopengl.h
+--- a/src/video/ethereal/SDL_etherealopengl.h	1969-12-31 18:00:00.000000000 -0600
++++ b/src/video/ethereal/SDL_etherealopengl.h	2026-07-25 11:09:40.642878575 -0500
+@@ -0,0 +1,49 @@
++/*
++  Simple DirectMedia Layer
++  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
++
++  This software is provided 'as-is', without any express or implied
++  warranty.  In no event will the authors be held liable for any damages
++  arising from the use of this software.
++
++  Permission is granted to anyone to use this software for any purpose,
++  including commercial applications, and to alter it and redistribute it
++  freely, subject to the following restrictions:
++
++  1. The origin of this software must not be misrepresented; you must not
++     claim that you wrote the original software. If you use this software
++     in a product, an acknowledgment in the product documentation would be
++     appreciated but is not required.
++  2. Altered source versions must be plainly marked as such, and must not be
++     misrepresented as being the original software.
++  3. This notice may not be removed or altered from any source distribution.
++*/
++
++#include "../../SDL_internal.h"
++
++#ifndef SDL_etherealopengl_h_
++#define SDL_etherealopengl_h_
++
++#ifdef SDL_VIDEO_OPENGL
++
++#include "../SDL_sysvideo.h"
++
++#include <GL/gl.h>
++#include <GL/osmesa.h>
++
++typedef struct SDL_GLData {
++   OSMesaContext context;
++   SDL_Window *window;
++} SDL_GLData;
++
++int ETHEREAL_GL_LoadLibrary(_THIS, const char *path);
++void ETHEREAL_GL_UnloadLibrary(_THIS);
++SDL_GLContext ETHEREAL_GL_CreateContext(_THIS, SDL_Window *window);
++void ETHEREAL_GL_DeleteContext(_THIS, SDL_GLContext context);
++int ETHEREAL_GL_SwapWindow(_THIS, SDL_Window *window);
++int ETHEREAL_GL_MakeCurrent(_THIS, SDL_Window *window, SDL_GLContext context);
++void *ETHEREAL_GL_GetProcAddress(_THIS, const char *proc);
++
++#endif
++
++#endif
+diff -Naur old_extract/SDL2-2.30.11/src/video/ethereal/SDL_etherealvideo.c new_workspace/SDL2-2.30.11/src/video/ethereal/SDL_etherealvideo.c
+--- a/src/video/ethereal/SDL_etherealvideo.c	1969-12-31 18:00:00.000000000 -0600
++++ b/src/video/ethereal/SDL_etherealvideo.c	2026-07-25 12:12:09.508174471 -0500
+@@ -0,0 +1,103 @@
++/*
++  Simple DirectMedia Layer
++  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
++
++  This software is provided 'as-is', without any express or implied
++  warranty.  In no event will the authors be held liable for any damages
++  arising from the use of this software.
++
++  Permission is granted to anyone to use this software for any purpose,
++  including commercial applications, and to alter it and redistribute it
++  freely, subject to the following restrictions:
++
++  1. The origin of this software must not be misrepresented; you must not
++     claim that you wrote the original software. If you use this software
++     in a product, an acknowledgment in the product documentation would be
++     appreciated but is not required.
++  2. Altered source versions must be plainly marked as such, and must not be
++     misrepresented as being the original software.
++  3. This notice may not be removed or altered from any source distribution.
++*/
++
++#include "../../SDL_internal.h"
++
++#ifdef SDL_VIDEO_DRIVER_ETHEREAL
++
++#include <stdio.h>
++#include "SDL_etherealevents.h"
++#include "SDL_etherealframebuffer.h"
++#include "SDL_etherealwindow.h"
++#include "SDL_etherealmouse.h"
++#include "SDL_etherealopengl.h"
++#include "SDL_etherealkeyboard.h"
++#include "SDL_etherealmodes.h"
++
++static int ETHEREAL_VideoInit(_THIS) {
++    TRACE();
++    ETHEREAL_MouseInit(_this);
++    ETHEREAL_KeyboardInit(_this);
++
++    return ETHEREAL_InitModes(_this);
++}
++
++static void ETHEREAL_VideoQuit(_THIS) {
++    TRACE();
++    ETHEREAL_QuitModes(_this);
++}
++
++static void ETHEREAL_Free(_THIS) {
++    SDL_free(_this);
++}
++
++SDL_VideoDevice *ETHEREAL_CreateDevice() {
++    TRACE();
++    SDL_VideoDevice *device = (SDL_VideoDevice*)SDL_calloc(1, sizeof(SDL_VideoDevice));
++
++    device->VideoInit = ETHEREAL_VideoInit;
++    device->VideoQuit = ETHEREAL_VideoQuit;
++    device->free = ETHEREAL_Free;
++    
++    device->CreateSDLWindow = ETHEREAL_CreateSDLWindow;
++    device->DestroyWindow = ETHEREAL_DestroyWindow;
++    device->SetWindowTitle = ETHEREAL_SetWindowTitle;
++    device->SetWindowResizable = ETHEREAL_SetWindowResizable;
++    device->SetWindowPosition = ETHEREAL_SetWindowPosition;
++    device->SetWindowSize = ETHEREAL_SetWindowSize;
++    device->SetWindowMaximumSize = ETHEREAL_SetWindowMaximumSize;
++    device->SetWindowMinimumSize = ETHEREAL_SetWindowMinimumSize;
++
++    device->CreateWindowFramebuffer = ETHEREAL_CreateWindowFramebuffer;
++    device->DestroyWindowFramebuffer = ETHEREAL_DestroyWindowFramebuffer;
++    device->UpdateWindowFramebuffer = ETHEREAL_UpdateWindowFramebuffer;
++
++    device->PumpEvents = ETHEREAL_PumpEvents;
++    device->WaitEventTimeout = ETHEREAL_WaitEventTimeout;
++
++#ifdef SDL_VIDEO_OPENGL
++    device->GL_LoadLibrary = ETHEREAL_GL_LoadLibrary;
++    device->GL_UnloadLibrary = ETHEREAL_GL_UnloadLibrary;
++    device->GL_GetProcAddress = ETHEREAL_GL_GetProcAddress;
++    device->GL_CreateContext = ETHEREAL_GL_CreateContext;
++    device->GL_DeleteContext = ETHEREAL_GL_DeleteContext;
++    device->GL_SwapWindow = ETHEREAL_GL_SwapWindow;
++    device->GL_MakeCurrent = ETHEREAL_GL_MakeCurrent;
++#endif
++
++    return device;
++}
++
++int ETHEREAL_ShowMessageBox(const SDL_MessageBoxData *messageboxdata, int *buttonid) {
++    // TODO
++    printf("MessageBox: %s: %s\n", messageboxdata->title, messageboxdata->message);
++    *buttonid = 0;
++    return 0;
++}
++
++VideoBootStrap  ETHEREAL_bootstrap = {
++    .name = "ethereal",
++    .desc = "Ethereal graphics",
++    .create = ETHEREAL_CreateDevice,
++    .ShowMessageBox = ETHEREAL_ShowMessageBox
++};
++
++#endif
+diff -Naur old_extract/SDL2-2.30.11/src/video/ethereal/SDL_etherealwindow.c new_workspace/SDL2-2.30.11/src/video/ethereal/SDL_etherealwindow.c
+--- a/src/video/ethereal/SDL_etherealwindow.c	1969-12-31 18:00:00.000000000 -0600
++++ b/src/video/ethereal/SDL_etherealwindow.c	2026-07-25 11:24:38.591998095 -0500
+@@ -0,0 +1,176 @@
++/*
++  Simple DirectMedia Layer
++  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
++
++  This software is provided 'as-is', without any express or implied
++  warranty.  In no event will the authors be held liable for any damages
++  arising from the use of this software.
++
++  Permission is granted to anyone to use this software for any purpose,
++  including commercial applications, and to alter it and redistribute it
++  freely, subject to the following restrictions:
++
++  1. The origin of this software must not be misrepresented; you must not
++     claim that you wrote the original software. If you use this software
++     in a product, an acknowledgment in the product documentation would be
++     appreciated but is not required.
++  2. Altered source versions must be plainly marked as such, and must not be
++     misrepresented as being the original software.
++  3. This notice may not be removed or altered from any source distribution.
++*/
++
++#include "../../SDL_internal.h"
++
++#ifdef SDL_VIDEO_DRIVER_ETHEREAL
++
++#include "SDL_etherealwindow.h"
++#include "SDL_etherealkeyboard.h"
++#include "../../events/SDL_mouse_c.h"
++#include "../../events/SDL_keyboard_c.h"
++#include "../../events/SDL_windowevents_c.h"
++#include <errno.h>
++
++static uint32_t ETHEREAL_ConvertToSDLMouse(uint32_t buttons) {
++    if (buttons & CELESTIAL_MOUSE_BUTTON_LEFT) return SDL_BUTTON_LEFT;
++    if (buttons & CELESTIAL_MOUSE_BUTTON_RIGHT) return SDL_BUTTON_RIGHT;
++    if (buttons & CELESTIAL_MOUSE_BUTTON_MIDDLE) return SDL_BUTTON_MIDDLE;
++    return 0;
++}
++
++void ETHEREAL_PositionChangeEvent(window_t *win, uint32_t event_type, void *event) {
++    celestial_event_position_change_t *ev = event;
++    SDL_WindowData *wdata = win->d;
++
++    SDL_SendWindowEvent(wdata->sdlwindow, SDL_WINDOWEVENT_MOVED, ev->x, ev->y);
++}
++
++void ETHEREAL_MouseMotionEvent(window_t *win, uint32_t event_type, void *event) {
++    celestial_event_mouse_motion_t *ev = event;
++    SDL_WindowData *wdata = win->d;
++
++    SDL_SendMouseMotion(wdata->sdlwindow, 0, SDL_FALSE, ev->x, ev->y);
++}
++
++void ETHEREAL_MouseDownEvent(window_t *win, uint32_t event_type, void *event) {
++    celestial_event_mouse_button_down_t *ev = event;
++    SDL_WindowData *wdata = win->d;
++
++    SDL_SendMouseButton(wdata->sdlwindow, 0, SDL_PRESSED, ETHEREAL_ConvertToSDLMouse(ev->held));
++}
++
++void ETHEREAL_MouseUpEvent(window_t *win, uint32_t event_type, void *event) {
++    celestial_event_mouse_button_up_t *ev = event;
++    SDL_WindowData *wdata = win->d;
++
++    SDL_SendMouseButton(wdata->sdlwindow, 0, SDL_RELEASED, ETHEREAL_ConvertToSDLMouse(ev->released));
++}
++
++void ETHEREAL_MouseMotionRelEvent(window_t *win, uint32_t event_type, void *event) {
++    celestial_event_mouse_motion_rel_t *ev = event;
++    SDL_WindowData *wdata = win->d;
++
++    SDL_SendMouseMotion(wdata->sdlwindow, 0, SDL_TRUE, ev->x, ev->y);
++}
++
++void ETHEREAL_KeyEvent(window_t *win, uint32_t event_type, void *event) {
++    SDL_WindowData *wdata = win->d;
++    ETHEREAL_KeyboardProcess(wdata->sdlwindow, event);
++}
++
++void ETHEREAL_ResizeHandler(window_t *win, uint32_t event_type, void *event) {
++    SDL_WindowData *wdata = win->d;
++    celestial_event_resize_t *resize = event;
++    SDL_SendWindowEvent(wdata->sdlwindow, SDL_WINDOWEVENT_RESIZED, resize->new_width, resize->new_height);
++}
++
++void ETHEREAL_RegisterEventHandlers(SDL_WindowData *data) {
++    celestial_setHandler(data->window, CELESTIAL_EVENT_POSITION_CHANGE, ETHEREAL_PositionChangeEvent);
++
++    celestial_setHandler(data->window, CELESTIAL_EVENT_MOUSE_MOTION, ETHEREAL_MouseMotionEvent);
++    celestial_setHandler(data->window, CELESTIAL_EVENT_MOUSE_BUTTON_DOWN, ETHEREAL_MouseDownEvent);
++    celestial_setHandler(data->window, CELESTIAL_EVENT_MOUSE_BUTTON_UP, ETHEREAL_MouseUpEvent);
++    celestial_setHandler(data->window, CELESTIAL_EVENT_MOUSE_MOTION_REL, ETHEREAL_MouseMotionRelEvent);
++
++    celestial_setHandler(data->window, CELESTIAL_EVENT_KEY_EVENT, ETHEREAL_KeyEvent);
++    celestial_setHandler(data->window, CELESTIAL_EVENT_RESIZE, ETHEREAL_ResizeHandler);
++}
++
++int ETHEREAL_CreateSDLWindow(_THIS, SDL_Window *window) {
++    TRACE();
++    SDL_WindowData *data = SDL_calloc(1, sizeof(SDL_WindowData));
++    data->sdlwindow = window;
++    
++    // Prepare to create window
++    wid_t wid;
++    if (window->flags & SDL_WINDOW_BORDERLESS) {
++        wid = celestial_createWindowUndecorated(0, (size_t)window->w, (size_t)window->h);
++    } else {
++        wid = celestial_createWindow(0, (size_t)window->w, (size_t)window->h);
++    }
++
++    if (wid < 0) {
++        return SDL_SetError("celestial_createWindow failed with error %s", strerror(errno));
++    }
++
++    window_t *win = celestial_getWindow(wid);
++    if (!win) {
++        return SDL_SetError("celestial_getWindow failed with error %s", strerror(errno));
++    }
++
++    if (window->flags & SDL_WINDOW_RESIZABLE) {
++        celestial_setResizeEnabled(win, true);
++    }
++
++    data->window = win;
++    data->surface = NULL;
++    
++    SDL_SetMouseFocus(window);
++    SDL_SetKeyboardFocus(window);
++
++    win->d = data;
++    window->driverdata = data;
++
++    ETHEREAL_RegisterEventHandlers(data);
++
++    return 0;
++}
++
++void ETHEREAL_DestroyWindow(_THIS, SDL_Window *window) {
++    SDL_WindowData *wdata = window->driverdata;
++
++    celestial_closeWindow(wdata->window);
++    SDL_free(wdata);
++}
++
++
++void ETHEREAL_SetWindowTitle(_THIS, SDL_Window *window) {
++    SDL_WindowData *wdata = window->driverdata;
++    celestial_setTitle(wdata->window, window->title);
++}
++
++void ETHEREAL_SetWindowResizable(_THIS, SDL_Window *window, SDL_bool resizable) {
++    SDL_WindowData *wdata = window->driverdata;
++    celestial_setResizeEnabled(wdata->window, resizable);
++}
++
++void ETHEREAL_SetWindowPosition(_THIS, SDL_Window *window) {
++    SDL_WindowData *wdata = window->driverdata;
++    celestial_setWindowPosition(wdata->window, window->x, window->y);
++}
++
++void ETHEREAL_SetWindowSize(_THIS, SDL_Window *window) {
++    SDL_WindowData *wdata = window->driverdata;
++    celestial_resizeWindow(wdata->window, window->w, window->h);
++}
++
++void ETHEREAL_SetWindowMaximumSize(_THIS, SDL_Window *window) {
++    SDL_WindowData *wdata = window->driverdata;
++    celestial_setResizeBounds(wdata->window, (size_t)window->min_w, (size_t)window->min_h, (size_t)window->max_w, (size_t)window->max_h);
++}
++
++void ETHEREAL_SetWindowMinimumSize(_THIS, SDL_Window *window) {
++    SDL_WindowData *wdata = window->driverdata;
++    celestial_setResizeBounds(wdata->window, (size_t)window->min_w, (size_t)window->min_h, (size_t)window->max_w, (size_t)window->max_h);
++}
++
++#endif
+diff -Naur old_extract/SDL2-2.30.11/src/video/ethereal/SDL_etherealwindow.h new_workspace/SDL2-2.30.11/src/video/ethereal/SDL_etherealwindow.h
+--- a/src/video/ethereal/SDL_etherealwindow.h	1969-12-31 18:00:00.000000000 -0600
++++ b/src/video/ethereal/SDL_etherealwindow.h	2026-07-25 11:41:55.483450673 -0500
+@@ -0,0 +1,57 @@
++/*
++  Simple DirectMedia Layer
++  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
++
++  This software is provided 'as-is', without any express or implied
++  warranty.  In no event will the authors be held liable for any damages
++  arising from the use of this software.
++
++  Permission is granted to anyone to use this software for any purpose,
++  including commercial applications, and to alter it and redistribute it
++  freely, subject to the following restrictions:
++
++  1. The origin of this software must not be misrepresented; you must not
++     claim that you wrote the original software. If you use this software
++     in a product, an acknowledgment in the product documentation would be
++     appreciated but is not required.
++  2. Altered source versions must be plainly marked as such, and must not be
++     misrepresented as being the original software.
++  3. This notice may not be removed or altered from any source distribution.
++*/
++
++#include "../../SDL_internal.h"
++
++#ifndef SDL_etherealwindow_h_
++#define SDL_etherealwindow_h_
++
++#include "../SDL_sysvideo.h"
++
++#include <ethereal/celestial.h>
++
++#if 0
++#define TRACE() fprintf(stderr, "Enter %s\n", __FUNCTION__ )
++#else
++#define TRACE()
++#endif
++
++typedef struct SDL_WindowData
++{
++    window_t *window;
++    SDL_Window *sdlwindow;
++    SDL_Surface *surface;
++    
++#ifdef SDL_VIDEO_OPENGL
++    SDL_GLContext gl_context;
++#endif
++} SDL_WindowData;
++
++int ETHEREAL_CreateSDLWindow(_THIS, SDL_Window *window);
++void ETHEREAL_DestroyWindow(_THIS, SDL_Window *window);
++void ETHEREAL_SetWindowTitle(_THIS, SDL_Window *window);
++void ETHEREAL_SetWindowResizable(_THIS, SDL_Window *window, SDL_bool resizable);
++void ETHEREAL_SetWindowPosition(_THIS, SDL_Window *window);
++void ETHEREAL_SetWindowSize(_THIS, SDL_Window *window);
++void ETHEREAL_SetWindowMaximumSize(_THIS, SDL_Window *window);
++void ETHEREAL_SetWindowMinimumSize(_THIS, SDL_Window *window);
++
++#endif
+diff -Naur old_extract/SDL2-2.30.11/src/video/SDL_surface.c new_workspace/SDL2-2.30.11/src/video/SDL_surface.c
+--- a/src/video/SDL_surface.c	2025-01-01 09:48:45.000000000 -0600
++++ b/src/video/SDL_surface.c	2026-07-25 11:39:58.765538535 -0500
+@@ -233,8 +233,12 @@
+     minimalPitch = SDL_CalculatePitch(format, width, SDL_TRUE);
+ 
+     if (pitch < 0 || (pitch > 0 && ((size_t)pitch) < minimalPitch)) {
++    #ifdef __ETHEREAL__
++        SDL_Log("Pitch is invalid. We got %d and expected at least %d\n", pitch, minimalPitch);
++    #else
+         SDL_InvalidParamError("pitch");
+         return NULL;
++    #endif
+     }
+ 
+     surface = SDL_CreateRGBSurfaceWithFormat(0, 0, 0, depth, format);
+@@ -279,8 +283,12 @@
+     }
+ 
+     if (pitch < 0 || (pitch > 0 && ((size_t)pitch) < minimalPitch)) {
++    #ifdef __ETHEREAL__
++        SDL_Log("Pitch is invalid. We got %d and expected at least %d\n", pitch, minimalPitch);
++    #else
+         SDL_InvalidParamError("pitch");
+         return NULL;
++    #endif
+     }
+ 
+     surface = SDL_CreateRGBSurfaceWithFormat(0, 0, 0, depth, format);
+diff -Naur old_extract/SDL2-2.30.11/src/video/SDL_sysvideo.h new_workspace/SDL2-2.30.11/src/video/SDL_sysvideo.h
+--- a/src/video/SDL_sysvideo.h	2025-01-01 09:48:45.000000000 -0600
++++ b/src/video/SDL_sysvideo.h	2025-07-05 18:30:37.117639342 -0500
+@@ -484,6 +484,7 @@
+ extern VideoBootStrap NGAGE_bootstrap;
+ extern VideoBootStrap OS2DIVE_bootstrap;
+ extern VideoBootStrap OS2VMAN_bootstrap;
++extern VideoBootStrap ETHEREAL_bootstrap;
+ 
+ /* Use SDL_OnVideoThread() sparingly, to avoid regressions in use cases that currently happen to work */
+ extern SDL_bool SDL_OnVideoThread(void);
+diff -Naur old_extract/SDL2-2.30.11/src/video/SDL_video.c new_workspace/SDL2-2.30.11/src/video/SDL_video.c
+--- a/src/video/SDL_video.c	2025-01-01 09:48:45.000000000 -0600
++++ b/src/video/SDL_video.c	2025-09-14 11:21:35.160664668 -0500
+@@ -140,6 +140,9 @@
+ #ifdef SDL_VIDEO_DRIVER_NGAGE
+     &NGAGE_bootstrap,
+ #endif
++#ifdef SDL_VIDEO_DRIVER_ETHEREAL
++    &ETHEREAL_bootstrap,
++#endif
+ #ifdef SDL_VIDEO_DRIVER_OFFSCREEN
+     &OFFSCREEN_bootstrap,
+ #endif

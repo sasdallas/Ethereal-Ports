@@ -1,0 +1,45 @@
+diff -Naur old_extract/vim-9.2.0538/src/errors.h new_workspace/vim-9.2.0538/src/errors.h
+--- a/src/errors.h	2026-05-25 12:41:13.000000000 -0500
++++ b/src/errors.h	2026-07-24 19:28:40.401349229 -0500
+@@ -3311,8 +3311,8 @@
+ 	INIT(= N_("E1287: Could not set handler for timeout: %s"));
+ EXTERN char e_could_not_reset_handler_for_timeout_str[]
+ 	INIT(= N_("E1288: Could not reset handler for timeout: %s"));
+-EXTERN char e_could_not_check_for_pending_sigalrm_str[]
+-	INIT(= N_("E1289: Could not check for pending SIGALRM: %s"));
++//EXTERN char e_could_not_check_for_pending_sigalrm_str[]
++//	INIT(= N_("E1289: Could not check for pending SIGALRM: %s"));
+ # endif
+ #endif
+ #ifdef FEAT_EVAL
+diff -Naur old_extract/vim-9.2.0538/src/os_unix.c new_workspace/vim-9.2.0538/src/os_unix.c
+--- a/src/os_unix.c	2026-05-25 12:41:13.000000000 -0500
++++ b/src/os_unix.c	2026-07-24 19:29:16.208800376 -0500
+@@ -8979,6 +8979,7 @@
+     volatile sig_atomic_t *
+ start_timeout(long msec)
+ {
++    return &timeout_flag;
+     struct itimerval	interval = {
+ 	    {0, 0},				    // Do not repeat.
+ 	    {msec / 1000, (msec % 1000) * 1000}};   // Timeout interval
+@@ -9007,7 +9008,7 @@
+     if (unlikely(ret != 0 || alarm_pending < 0))
+     {
+ 	// Just catching coding errors. Write an error message, but carry on.
+-	semsg(_(e_could_not_check_for_pending_sigalrm_str), strerror(errno));
++	// semsg(_(e_could_not_check_for_pending_sigalrm_str), strerror(errno));
+ 	alarm_pending = FALSE;
+     }
+ 
+diff -Naur old_extract/vim-9.2.0538/src/time.c new_workspace/vim-9.2.0538/src/time.c
+--- a/src/time.c	2026-05-25 12:41:13.000000000 -0500
++++ b/src/time.c	2026-07-24 19:29:39.074323209 -0500
+@@ -11,6 +11,7 @@
+  * time.c: functions related to time and timers
+  */
+ 
++#define _XOPEN_SOURCE
+ #include "vim.h"
+ 
+ /*
