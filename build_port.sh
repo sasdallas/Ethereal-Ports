@@ -69,6 +69,7 @@ fi
 MESON_CROSS=$(realpath ethereal-meson.txt)
 CMAKE_CROSS=$(realpath ethereal-cmake.txt)
 PORT_BUILD_DIR=$(realpath build/)
+PORT_UTIL_DIR=$(realpath util/)
 
 
 # get_option helper

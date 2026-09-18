@@ -3,6 +3,7 @@
 set -eu
 
 NAME="tinycc"
+VERSION="1.0.0"
 GIT_URL="https://github.com/TinyCC/tinycc"
 GIT_COMMIT="576cd2a9235cf955c25e786399d760a360020547"
 BUILD_DIR="tinycc"

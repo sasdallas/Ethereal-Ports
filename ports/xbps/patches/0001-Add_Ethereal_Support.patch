@@ -1,0 +1,76 @@
+diff -Naur old_extract/xbps-0.60.7/bin/xbps-install/util.c new_workspace/xbps-0.60.7/bin/xbps-install/util.c
+--- a/bin/xbps-install/util.c	2026-02-09 14:23:08.000000000 -0600
++++ b/bin/xbps-install/util.c	2026-08-30 12:14:37.968427084 -0500
+@@ -34,6 +34,7 @@
+ #include <string.h>
+ #include <strings.h>
+ #include <unistd.h>
++#include <termios.h>
+ 
+ #include <xbps.h>
+ #include "defs.h"
+diff -Naur old_extract/xbps-0.60.7/configure new_workspace/xbps-0.60.7/configure
+--- a/configure	2026-02-09 14:23:08.000000000 -0600
++++ b/configure	2026-08-30 12:14:13.384622889 -0500
+@@ -246,7 +246,7 @@
+ #include <stdio.h>
+ int main(void) { return 0; }
+ EOF
+-	if $XCC -${mode}${flag} _ccflag.c -o _ccflag 2>_ccflag.err; then
++	if $XCC -${mode}${flag} -c _ccflag.c -o _ccflag 2>_ccflag.err; then
+ 		if ! test -s _ccflag.err; then
+ 			if [ "$mode" = "W" -a -z "$var" ]; then
+ 				echo "CPPFLAGS +=	-${mode}${flag}" >>$CONFIG_MK
+@@ -323,15 +323,17 @@
+ #
+ # Check if PIE is supported.
+ #
+-check_compiler_flag PIE f PROG_CFLAGS
+-if [ $? -eq 0 ]; then
+-	check_compiler_flag pie "" PROG_LDFLAGS
+-fi
+-if [ $? -eq 0 ]; then
+-	BUILD_PIE_VALUE=yes
+-else
+-	BUILD_PIE_VALUE=no
+-fi
++#check_compiler_flag PIE f PROG_CFLAGS
++#if [ $? -eq 0 ]; then
++#	check_compiler_flag pie "" PROG_LDFLAGS
++#fi
++#if [ $? -eq 0 ]; then
++#	BUILD_PIE_VALUE=yes
++#else
++#	BUILD_PIE_VALUE=no
++#fi
++
++BUILD_PIE_VALUE=no
+ 
+ #
+ # A C99 compiler is required to build xbps.
+diff -Naur old_extract/xbps-0.60.7/lib/fetch/ftp.c new_workspace/xbps-0.60.7/lib/fetch/ftp.c
+--- a/lib/fetch/ftp.c	2026-02-09 14:23:08.000000000 -0600
++++ b/lib/fetch/ftp.c	2026-08-30 12:09:00.139293197 -0500
+@@ -138,7 +138,7 @@
+ 	sin4->sin_port = port;
+ 	sin4->sin_family = AF_INET;
+ 	*len = sizeof(struct sockaddr_in);
+-#ifndef __linux__
++#if !defined(__linux__) && !defined(__ETHEREAL__)
+ 	sin4->sin_len = sizeof(struct sockaddr_in);
+ #endif
+ }
+diff -Naur old_extract/xbps-0.60.7/mk/prog.mk new_workspace/xbps-0.60.7/mk/prog.mk
+--- a/mk/prog.mk	2026-02-09 14:23:08.000000000 -0600
++++ b/mk/prog.mk	2026-08-30 12:12:17.925298203 -0500
+@@ -48,8 +48,8 @@
+ 
+ $(BIN).static: $(OBJS) $(TOPDIR)/lib/libxbps.a
+ 	@printf " [CCLD]\t\t$@\n"
+-	${SILENT}$(CC) -static $(OBJS) $(CPPFLAGS) -L$(TOPDIR)/lib \
+-		$(CFLAGS) $(LDFLAGS) $(PROG_LDFLAGS) $(STATIC_LIBS) -o $@
++#${SILENT}$(CC) -static $(OBJS) $(CPPFLAGS) -L$(TOPDIR)/lib \
++#		$(CFLAGS) $(LDFLAGS) $(PROG_LDFLAGS) $(STATIC_LIBS) -o $@
+ 
+ $(BIN): $(OBJS) $(TOPDIR)/lib/libxbps.so
+ 	@printf " [CCLD]\t\t$@\n"
