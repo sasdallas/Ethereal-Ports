@@ -1,3 +1,4 @@
 .built_ports
 build/
+util/.cargo/config.toml
 ethereal-meson.txt

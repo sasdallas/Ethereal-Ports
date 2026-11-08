@@ -1,0 +1,12 @@
+diff -Naur old_extract/exiv2-0.28.9/CMakeLists.txt new_workspace/exiv2-0.28.9/CMakeLists.txt
+--- a/CMakeLists.txt	2026-08-30 14:33:50.000000000 -0500
++++ b/CMakeLists.txt	2026-09-13 18:47:42.927437364 -0500
+@@ -54,7 +54,7 @@
+ option( EXIV2_TEAM_OSS_FUZZ           "Build config for OSS-Fuzz"                             OFF )
+ 
+ option( EXIV2_TEAM_PACKAGING          "Additional stuff for generating packages"              OFF )
+-set(EXTRA_COMPILE_FLAGS " ")
++set(EXTRA_COMPILE_FLAGS "-fno-pie -no-pie -fPIC")
+ 
+ mark_as_advanced(
+     EXIV2_TEAM_EXTRA_WARNINGS

@@ -10,6 +10,9 @@ cpp = 'x86_64-ethereal-g++'
 ar = 'x86_64-ethereal-ar'
 strip = 'x86_64-ethereal-strip'
 ld = 'x86_64-ethereal-ld'
-pkgconfig = 'pkg-config'
+pkgconfig = 'x86_64-ethereal-pkg-config'
 glib-compile-schemas = '/usr/bin/glib-compile-schemas'
 glib-compile-resources = '/usr/bin/glib-compile-resources'
+
+[properties]
+sys_root = '/home/samuel/Desktop/reduceOS/build-output/sysroot/'

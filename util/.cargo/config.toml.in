@@ -1,0 +1,17 @@
+[build]
+target = "@ETHEREAL_TARGET_JSON@"
+
+[target.@ETHEREAL_TARGET@]
+linker = "@ETHEREAL_GCC@"
+
+[unstable]
+json-target-spec = true
+
+[patch.crates-io]
+libc = { path = "@PORT_BUILD_DIR@/rust-libc" }
+cc = { path = "@PORT_BUILD_DIR@/rust-cc", package = "cc" }
+getrandom-02 = { path = "@PORT_BUILD_DIR@/rust-getrandom" }
+socket2 = { path = "@PORT_BUILD_DIR@/rust-socket2" }
+num_cpus = { path = "@PORT_BUILD_DIR@/rust-num-cpus" }
+nix-029 = { path = "@PORT_BUILD_DIR@/rust-nix", package = "nix" }
+termios = { path = "@PORT_BUILD_DIR@/rust-termios" }

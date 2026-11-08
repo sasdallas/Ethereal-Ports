@@ -1,0 +1,20 @@
+{
+  "llvm-target": "x86_64-unknown-ethereal",
+  "arch": "x86_64",
+  "vendor": "unknown",
+  "os": "ethereal",
+  "env": "mlibc",
+  "target-pointer-width": 64,
+  "data-layout": "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128",
+  "target-endian": "little",
+  "target-family": ["unix"],
+  "executables": true,
+  "linker-flavor": "gnu-cc",
+  "linker": "/usr/bin/x86_64-ethereal-gcc",
+  "late-link-args": { "gnu-cc": ["-lgcc", "-lc"] },
+  "relocation-model": "pic",
+  "panic-strategy": "abort",
+  "features": "-mmx,-sse,+sse2",
+  "dynamic-linking": true,
+  "has-rpath": true
+}

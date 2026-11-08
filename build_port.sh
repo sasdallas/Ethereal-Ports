@@ -18,6 +18,21 @@ if ! [ -n "$TRIPLET" ]; then
 	exit 1
 fi
 
+# Generate ethereal-meson.txt
+cp -rpf ethereal-meson-template.txt ethereal-meson.txt
+sed -i "s|SYSROOT_HERE|$SYSROOT|g" ethereal-meson.txt
+
+# Generate cargo.toml
+cp util/.cargo/config.toml.in util/.cargo/config.toml
+sed -i "s|@ETHEREAL_TARGET_JSON@|$(pwd)/util/$CROSS_ARCH-unknown-ethereal.json|g" util/.cargo/config.toml
+sed -i "s|@ETHEREAL_TARGET@|$CROSS_ARCH-unknown-ethereal|g" util/.cargo/config.toml
+sed -i "s|@ETHEREAL_GCC@|$(which $TRIPLET-gcc)|g" util/.cargo/config.toml
+sed -i "s|@PORT_BUILD_DIR@|$(realpath build/)|g" util/.cargo/config.toml
+export CARGO_HOME="$(pwd)/util/.cargo/"
+
+# Path
+export PATH="$(pwd)/util/:$PATH"
+
 set -eu
 
 FORCE=0
