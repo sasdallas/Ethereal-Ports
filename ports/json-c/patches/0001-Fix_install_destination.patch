@@ -1,0 +1,12 @@
+diff -Naur old_extract/json-c-0.19/CMakeLists.txt new_workspace/json-c-0.19/CMakeLists.txt
+--- a/CMakeLists.txt	2026-06-27 08:44:12.000000000 -0500
++++ b/CMakeLists.txt	2026-11-08 16:12:58.699651772 -0600
+@@ -645,7 +645,7 @@
+     set(INSTALL_PKGCONFIG_DIR "${CMAKE_INSTALL_LIBDIR}/pkgconfig" CACHE PATH "Installation directory for pkgconfig (.pc) files")
+     install(FILES ${PROJECT_BINARY_DIR}/json-c.pc DESTINATION "${INSTALL_PKGCONFIG_DIR}")
+ 
+-install(FILES ${JSON_C_PUBLIC_HEADERS} DESTINATION ${CMAKE_INSTALL_FULL_INCLUDEDIR}/json-c)
++install(FILES ${JSON_C_PUBLIC_HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/json-c)
+ 
+ if (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME AND BUILD_TESTING AND
+    (NOT MSVC OR NOT (MSVC_VERSION LESS 1800)) # Tests need at least VS2013

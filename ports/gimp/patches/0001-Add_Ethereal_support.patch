@@ -1,0 +1,86 @@
+diff -Naur old_extract/gimp-3.2.6/gimp-data/images/meson.build new_workspace/gimp-3.2.6/gimp-data/images/meson.build
+--- a/gimp-data/images/meson.build	2026-07-24 09:47:17.000000000 -0500
++++ b/gimp-data/images/meson.build	2026-09-13 19:36:12.012875556 -0500
+@@ -2,8 +2,12 @@
+ crop_conf.set('VARS', fs.read('gimp-splash.crop'))
+ 
+ data_env = gimp_run_env
+-data_env.append('GIMP_TESTING_PLUG_INS', 'common/file-compressor', separator: ':')
+-data_env.append('GIMP_TESTING_PLUG_INS', 'common/file-png', separator: ':')
++# The cross-built plug-ins cannot be loaded by the native GIMP used to run
++# build-time asset generators.  Let that native GIMP use its own plug-ins.
++if meson.can_run_host_binaries()
++  data_env.append('GIMP_TESTING_PLUG_INS', 'common/file-compressor', separator: ':')
++  data_env.append('GIMP_TESTING_PLUG_INS', 'common/file-png', separator: ':')
++endif
+ 
+ ## Splash Image and Welcome Dialog ##
+ 
+diff -Naur old_extract/gimp-3.2.6/meson.build new_workspace/gimp-3.2.6/meson.build
+--- a/meson.build	2026-09-10 06:33:42.000000000 -0500
++++ b/meson.build	2026-09-13 19:15:28.500925686 -0500
+@@ -490,7 +490,7 @@
+ # minimum requirement.
+ add_project_arguments('-DGLIB_VERSION_MAX_ALLOWED=GLIB_VERSION_2_76', language: 'c')
+ 
+-gi                = dependency('gobject-introspection-1.0')
++gi                = dependency('gobject-introspection-1.0', required: false)
+ 
+ gobject           = dependency('gobject-2.0',        version: '>='+glib_minver)
+ gmodule           = dependency('gmodule-no-export-2.0')
+@@ -544,7 +544,7 @@
+   mypaint_brushes_dir = '${gimp_installation_dir}'\
+                         /'share'/'mypaint-data'/'2.0'/'brushes'
+ else
+-  mypaint_brushes_dir = mypaint_brushes.get_variable(pkgconfig: 'brushesdir')
++  mypaint_brushes_dir = mypaint_brushes.get_pkgconfig_variable('brushesdir')
+ endif
+ 
+ conf.set_quoted('MYPAINT_BRUSHES_DIR', mypaint_brushes_dir)
+@@ -577,7 +577,7 @@
+   pangoft2     = dependency('pangoft2',    version: '>='+pango_minver)
+ endif
+ 
+-if cc.run('''
++if meson.can_run_host_binaries() and cc.run('''
+   #include <pango/pango.h>
+   #include <string.h>
+   #include <stdlib.h>
+@@ -1173,7 +1173,7 @@
+ 
+ isocodes = dependency('iso-codes', required: false)
+ if isocodes.found()
+-  isocodes_prefix = isocodes.get_variable(pkgconfig: 'prefix')
++  isocodes_prefix = isocodes.get_pkgconfig_variable('prefix')
+   isocodes_location = isocodes_prefix / 'share' / 'xml' / 'iso-codes'
+   isocodes_localedir= isocodes_prefix / 'share' / 'locale'
+   conf.set_quoted('ISO_CODES_LOCATION',  isocodes_location)
+@@ -1585,7 +1585,7 @@
+ endif
+ 
+ if shmem_choice == 'sysv'
+-  check_ip_rmid_deferred_release = cc.run('''
++  check_ip_rmid_deferred_release = host_os.contains('ethereal') or cc.run('''
+   #include <sys/types.h>
+   #include <sys/ipc.h>
+   #include <sys/shm.h>
+diff -Naur old_extract/gimp-3.2.6/plug-ins/meson.build new_workspace/gimp-3.2.6/plug-ins/meson.build
+--- a/plug-ins/meson.build	2026-09-10 06:33:42.000000000 -0500
++++ b/plug-ins/meson.build	2026-09-13 19:03:46.867974743 -0500
+@@ -35,10 +35,15 @@
+   { 'name': 'pagecurl', },
+   { 'name': 'print', },
+   { 'name': 'screenshot', },
+-  { 'name': 'script-fu', },
+   { 'name': 'selection-to-path', }
+ ]
+ 
++if gi.found()
++  complex_plugins_list += {
++    'name': 'script-fu',
++  }
++endif
++
+ if openexr.found()
+   complex_plugins_list += {
+     'name': 'file-exr',

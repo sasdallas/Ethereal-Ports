@@ -1,0 +1,42 @@
+diff -Naur old_extract/libmypaint-1.6.1/config.sub new_workspace/libmypaint-1.6.1/config.sub
+--- a/config.sub	2015-10-23 15:56:31.000000000 -0500
++++ b/config.sub	2026-09-13 18:42:09.690561484 -0500
+@@ -1384,7 +1384,7 @@
+ 	      | -clix* | -riscos* | -uniplus* | -iris* | -rtu* | -xenix* \
+ 	      | -hiux* | -386bsd* | -knetbsd* | -mirbsd* | -netbsd* \
+ 	      | -bitrig* | -openbsd* | -solidbsd* \
+-	      | -ekkobsd* | -kfreebsd* | -freebsd* | -riscix* | -lynxos* \
++	      | -ekkobsd* | -kfreebsd* | -ethereal* | -freebsd* | ethereal* | -riscix* | -lynxos* \
+ 	      | -bosx* | -nextstep* | -cxux* | -aout* | -elf* | -oabi* \
+ 	      | -ptx* | -coff* | -ecoff* | -winnt* | -domain* | -vsta* \
+ 	      | -udi* | -eabi* | -lites* | -ieee* | -go32* | -aux* \
+diff -Naur old_extract/libmypaint-1.6.1/configure new_workspace/libmypaint-1.6.1/configure
+--- a/configure	2020-05-11 11:38:35.000000000 -0500
++++ b/configure	2026-09-13 18:41:52.746471435 -0500
+@@ -5668,6 +5668,10 @@
+   lt_cv_deplibs_check_method=pass_all
+   ;;
+ 
++ethereal*)
++      lt_cv_deplibs_check_method=pass_all
++      ;;
++
+ hpux10.20* | hpux11*)
+   lt_cv_file_magic_cmd=/usr/bin/file
+   case $host_cpu in
+@@ -11496,6 +11500,15 @@
+   version_type=linux # correct to gnu/linux during the next big refactor
+   need_lib_prefix=no
+   need_version=no
++  library_names_spec='$libname$release$shared_ext$versuffix $libname$release$shared_ext$major $libname$shared_ext'
++  soname_spec='$libname$release$shared_ext$major'
++  shlibpath_var=LD_LIBRARY_PATH
++  ;;
++
++ethereal*)
++  version_type=linux # correct to gnu/linux during the next big refactor
++  need_lib_prefix=no
++  need_version=no
+   library_names_spec='$libname$release$shared_ext$versuffix $libname$release$shared_ext$major $libname$shared_ext'
+   soname_spec='$libname$release$shared_ext$major'
+   shlibpath_var=LD_LIBRARY_PATH

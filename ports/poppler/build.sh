@@ -6,9 +6,9 @@ TARBALL_URL="https://poppler.freedesktop.org/poppler-$VERSION.tar.xz"
 DEPENDS=("libtiff" "poppler-data")
 
 configure() {
-    mkdir build-brotli
+    mkdir build-poppler
 
-    pushd build-brotli
+    pushd build-poppler
     cmake -GNinja -S .. -B . --toolchain $CMAKE_CROSS \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_INSTALL_PREFIX=${PREFIX} \
@@ -23,9 +23,9 @@ configure() {
 }
 
 build() {
-    cmake --build build-brotli -j $NPROC || exit 1
+    cmake --build build-poppler -j $NPROC || exit 1
 }
 
 install() {
-    cmake --install build-brotli -j $NPROC || exit 1
+    cmake --install build-poppler -j $NPROC || exit 1
 }
