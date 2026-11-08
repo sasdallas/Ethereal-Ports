@@ -1,0 +1,12 @@
+diff -Naur old_extract/AppStream-1.1.2/src/as-system-info.c new_workspace/AppStream-1.1.2/src/as-system-info.c
+--- a/src/as-system-info.c	2026-01-28 14:15:58.000000000 -0600
++++ b/src/as-system-info.c	2026-09-13 18:57:23.297475583 -0500
+@@ -513,7 +513,7 @@
+ 		return 0;
+ 	}
+ 	return hbi.memory_size / MB_IN_BYTES;
+-#elif defined(__sun)
++#elif defined(__sun) || defined(__ETHEREAL__)
+ 	long physpages = sysconf (_SC_PHYS_PAGES);
+ 	long pagesize = sysconf (_SC_PAGESIZE);
+ 	if (physpages > 0 && pagesize > 0)

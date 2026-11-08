@@ -1,0 +1,24 @@
+diff -Naur old_extract/wget-1.25.0/build-aux/config.sub new_workspace/wget-1.25.0/build-aux/config.sub
+--- a/build-aux/config.sub	2024-11-10 15:27:45.000000000 -0600
++++ b/build-aux/config.sub	2026-09-20 10:44:33.051283760 -0500
+@@ -1750,7 +1750,7 @@
+ 	     | clix* | riscos* | uniplus* | iris* | isc* | rtu* | xenix* \
+ 	     | mirbsd* | netbsd* | dicos* | openedition* | ose* \
+ 	     | bitrig* | openbsd* | secbsd* | solidbsd* | libertybsd* | os108* \
+-	     | ekkobsd* | freebsd* | riscix* | lynxos* | os400* \
++	     | ekkobsd* | freebsd* | ethereal* | riscix* | lynxos* | os400* \
+ 	     | bosx* | nextstep* | cxux* | oabi* \
+ 	     | ptx* | ecoff* | winnt* | domain* | vsta* \
+ 	     | udi* | lites* | ieee* | go32* | aux* | hcos* \
+diff -Naur old_extract/wget-1.25.0/configure new_workspace/wget-1.25.0/configure
+--- a/configure	2024-11-10 15:29:15.000000000 -0600
++++ b/configure	2026-09-20 10:44:27.830291480 -0500
+@@ -56154,7 +56154,7 @@
+                              # Guess yes on systems that emulate the Linux system calls.
+             midipix*)        gl_cv_func_pselect_detects_ebadf="guessing yes" ;;
+                              # Guess yes on glibc systems.
+-            *-gnu* | gnu*)   gl_cv_func_pselect_detects_ebadf="guessing yes" ;;
++            *-gnu* | gnu* | ethereal*)   gl_cv_func_pselect_detects_ebadf="guessing yes" ;;
+                              # If we don't know, obey --enable-cross-guesses.
+             *)               gl_cv_func_pselect_detects_ebadf="$gl_cross_guess_normal" ;;
+            esac

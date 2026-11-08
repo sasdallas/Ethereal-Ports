@@ -1,0 +1,103 @@
+diff -Naur old_extract/glib-2.85.2/gio/gcredentialsprivate.h new_workspace/glib-2.85.2/gio/gcredentialsprivate.h
+--- a/gio/gcredentialsprivate.h	2025-07-21 12:47:53.000000000 -0500
++++ b/gio/gcredentialsprivate.h	2026-09-26 09:58:04.646944180 -0500
+@@ -182,6 +182,14 @@
+ #define G_CREDENTIALS_SOCKET_GET_CREDENTIALS_SUPPORTED 1
+ #define G_CREDENTIALS_HAS_PID 1
+ 
++#elif defined(__ETHEREAL__)
++#define G_CREDENTIALS_SUPPORTED 1
++#define G_CREDENTIALS_USE_LINUX_UCRED 1
++#define G_CREDENTIALS_NATIVE_TYPE G_CREDENTIALS_TYPE_LINUX_UCRED
++#define G_CREDENTIALS_NATIVE_SIZE (sizeof (struct ucred))
++#define G_CREDENTIALS_SOCKET_GET_CREDENTIALS_SUPPORTED 1
++#define G_CREDENTIALS_HAS_PID 1
++
+ #endif
+ 
+ #endif /* __G_CREDENTIALS_PRIVATE_H__ */
+diff -Naur old_extract/glib-2.85.2/gio/gunixmounts.c new_workspace/glib-2.85.2/gio/gunixmounts.c
+--- a/gio/gunixmounts.c	2025-07-21 12:47:53.000000000 -0500
++++ b/gio/gunixmounts.c	2026-09-26 09:57:43.164898073 -0500
+@@ -1114,7 +1114,7 @@
+ }
+ 
+ /* QNX {{{2 */
+-#elif defined (HAVE_QNX)
++#elif defined (HAVE_QNX) || defined(__ETHEREAL__)
+ 
+ static char *
+ get_mtab_monitor_file (void)
+@@ -1746,6 +1746,28 @@
+ }
+ 
+ static GUnixMountPoint **
++_g_unix_mount_points_get_from_file (const char *table_path,
++                                    uint64_t   *time_read_out,
++                                    size_t     *n_points_out)
++{
++  /* Not supported on getfsent() systems. */
++  if (time_read_out != NULL)
++    *time_read_out = 0;
++  if (n_points_out != NULL)
++    *n_points_out = 0;
++  return NULL;
++}
++
++#elif defined(__ETHEREAL__)
++
++
++static GList *
++_g_get_unix_mount_points (void)
++{
++  return NULL;
++}
++
++static GUnixMountPoint **
+ _g_unix_mount_points_get_from_file (const char *table_path,
+                                     uint64_t   *time_read_out,
+                                     size_t     *n_points_out)
+diff -Naur old_extract/glib-2.85.2/glib/gfileutils.c new_workspace/glib-2.85.2/glib/gfileutils.c
+--- a/glib/gfileutils.c	2025-07-21 12:47:53.000000000 -0500
++++ b/glib/gfileutils.c	2026-09-26 09:57:43.165261183 -0500
+@@ -20,6 +20,7 @@
+ 
+ #include "config.h"
+ #include "glibconfig.h"
++#include <fcntl.h>
+ 
+ #include <sys/stat.h>
+ #include <stdio.h>
+@@ -1163,7 +1164,7 @@
+                gboolean      do_fsync,
+                GError      **err)
+ {
+-#ifdef HAVE_FALLOCATE
++#if !defined(__ETHEREAL__) && defined(HAVE_FALLOCATE)
+   if (length > 0)
+     {
+       /* We do this on a 'best effort' basis... It may not be supported
+diff -Naur old_extract/glib-2.85.2/glib/gmain.c new_workspace/glib-2.85.2/glib/gmain.c
+--- a/glib/gmain.c	2025-07-21 12:47:53.000000000 -0500
++++ b/glib/gmain.c	2026-09-26 09:57:43.165691190 -0500
+@@ -4213,7 +4213,7 @@
+   while (pollrec && i < n_fds)
+     {
+       /* Make sure that fds is sorted by file descriptor identifier. */
+-      g_assert (i <= 0 || fds[i - 1].fd < fds[i].fd);
++      g_assert(i <= 0 || fds[i - 1].fd < fds[i].fd);
+ 
+       /* Skip until finding the first GPollRec matching the current GPollFD. */
+       while (pollrec && pollrec->fd->fd != fds[i].fd)
+diff -Naur old_extract/glib-2.85.2/glib/gutils.c new_workspace/glib-2.85.2/glib/gutils.c
+--- a/glib/gutils.c	2025-07-21 12:47:53.000000000 -0500
++++ b/glib/gutils.c	2026-09-26 09:57:43.166154047 -0500
+@@ -3279,7 +3279,7 @@
+ gboolean
+ g_check_setuid (void)
+ {
+-#if defined(HAVE_SYS_AUXV_H) && defined(HAVE_GETAUXVAL) && defined(AT_SECURE)
++#if defined(HAVE_SYS_AUXV_H) && defined(HAVE_GETAUXVAL) && defined(AT_SECURE) && !defined(__ETHEREAL__)
+   unsigned long value;
+   int errsv;
+ 

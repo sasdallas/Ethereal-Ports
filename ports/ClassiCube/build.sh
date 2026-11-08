@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 NAME="ClassiCube"
+VERSION="1.0.0"
 GIT_URL="https://github.com/ClassiCube/ClassiCube"
 GIT_COMMIT="38c0bdd706ec0fbdebf85ea1b98f50bd93588c7d"
 DEPENDS=("SDL2" "openal-soft" "openssl")
@@ -14,5 +15,6 @@ build() {
 }
 
 install() {
+    mkdir -p $SYSROOT/usr/bin/
     cp ClassiCube $SYSROOT/usr/bin/
 }

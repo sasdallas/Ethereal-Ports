@@ -3,10 +3,13 @@
 NAME="ca-certificates"
 VERSION="2026-03-19"
 DOWNLOAD_URL="https://curl.se/ca/cacert-$VERSION.pem"
-BUILD_DIR="."
+BUILD_DIR="ca-certs"
 
 fetch() {
+    mkdir $BUILD_DIR || true
+    pushd $BUILD_DIR
     wget $DOWNLOAD_URL
+    popd
 }
 
 configure() {

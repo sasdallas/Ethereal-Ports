@@ -1,0 +1,415 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 8ecef1a..8c45c30 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -28,7 +28,7 @@ add_compile_options(-g)
+ 
+ set(PLATFORM "banan-os" CACHE STRING "target platform")
+ 
+-set(VALID_PLATFORMS "banan-os" "SDL3")
++set(VALID_PLATFORMS "banan-os" "SDL3" "ethereal")
+ if(NOT PLATFORM IN_LIST VALID_PLATFORMS)
+ 	message(FATAL_ERROR "platform \"${PLATFORM}\" not known, valid platforms are ${VALID_PLATFORMS}")
+ endif()
+diff --git a/banan-os b/banan-os
+--- a/banan-os
++++ b/banan-os
+@@ -1 +1 @@
+-Subproject commit 1bf5e6a05125b09d91f1399eb4f89ab5f651d2fb
++Subproject commit 1bf5e6a05125b09d91f1399eb4f89ab5f651d2fb-dirty
+diff --git a/xbanan/Base.cpp b/xbanan/Base.cpp
+index 10b98bd..f38fc62 100644
+--- a/xbanan/Base.cpp
++++ b/xbanan/Base.cpp
+@@ -647,8 +647,8 @@ BAN::ErrorOr<void> destroy_window(Client& client_info, WINDOW wid)
+ 
+ 	auto& window = object.object.get<Object::Window>();
+ 
+-	for (auto child_wid : window.children)
+-		TRY(destroy_window(client_info, child_wid));
++	while (!window.children.empty())
++		TRY(destroy_window(client_info, window.children.back()));
+ 
+ 	{
+ 		xEvent event = { .u = {
+@@ -1505,7 +1505,7 @@ BAN::ErrorOr<void> handle_packet(Client& client_info, BAN::ConstByteSpan packet)
+ 			dprintln("  nUnits:   {}", request.nUnits);
+ 
+ 			ASSERT(request.format == 8 || request.format == 16 || request.format == 32);
+-
++			
+ 			auto& window = TRY_REF(get_window(client_info, request.window, opcode));
+ 
+ 			auto it = window.properties.find(request.property);
+diff --git a/xbanan/CMakeLists.txt b/xbanan/CMakeLists.txt
+index 7012d57..4e94c0a 100644
+--- a/xbanan/CMakeLists.txt
++++ b/xbanan/CMakeLists.txt
+@@ -29,6 +29,8 @@ if(PLATFORM STREQUAL "banan-os")
+ 	list(APPEND XBANAN_SOURCES banan-os/banan-os.cpp)
+ elseif(PLATFORM STREQUAL "SDL3")
+ 	list(APPEND XBANAN_SOURCES SDL3/sdl3.cpp)
++elseif(PLATFORM STREQUAL "ethereal")
++	list(APPEND XBANAN_SOURCES ethereal/ethereal.cpp)
+ endif()
+ 
+ add_executable(xbanan ${XBANAN_SOURCES})
+@@ -43,6 +45,14 @@ if(PLATFORM STREQUAL "banan-os")
+ elseif(PLATFORM STREQUAL "SDL3")
+ 	find_package(SDL3 REQUIRED)
+ 	banan_link_library(xbanan SDL3::SDL3)
++elseif(PLATFORM STREQUAL "ethereal")
++	# celestial does not support the banan_include_headers macro
++	target_link_libraries(xbanan PUBLIC celestial graphics ethereal keyboard structures)
++
++	# who knows why this is needed
++	find_package(PkgConfig REQUIRED)
++	pkg_check_modules(FREETYPE REQUIRED IMPORTED_TARGET freetype2)
++	target_link_libraries(xbanan PRIVATE PkgConfig::FREETYPE)
+ endif()
+ 
+ target_compile_options(xbanan PRIVATE -Wall -Wextra)
+diff --git a/xbanan/ExtXRes.cpp b/xbanan/ExtXRes.cpp
+index 3318320..be12b8c 100644
+--- a/xbanan/ExtXRes.cpp
++++ b/xbanan/ExtXRes.cpp
+@@ -12,7 +12,7 @@ static BAN::ErrorOr<void> for_each_client(uint32_t target_spec, const F& callbac
+ 		if (thingy.type != Pollable::Type::Client)
+ 			continue;
+ 
+-		Client& client_info = thingy.value.get<Client>();
++		Client& client_info = thingy.value.template get<Client>();
+ 		if (target_spec && (target_spec >> 20) != client_info.fd)
+ 			continue;
+ 
+diff --git a/xbanan/ethereal/ethereal.cpp b/xbanan/ethereal/ethereal.cpp
+new file mode 100644
+index 0000000..4ce5b50
+--- /dev/null
++++ b/xbanan/ethereal/ethereal.cpp
+@@ -0,0 +1,325 @@
++#include "../Events.h"
++#include "../Keymap.h"
++#include "../Platform.h"
++#include <errno.h>
++#include <string.h>
++#include <BAN/Vector.h>
++
++
++extern "C" {
++    #include <ethereal/celestial.h>
++    #include <ethereal/keyboard.h>
++    #include <graphics/gfx.h>
++};
++
++#include <X11/keysym.h>
++
++bool has_registered = false;
++
++/* because of Ethereal's weird keyboard system, it's easier to operate on raw PS/2 scancodes */
++/* and just use the keyboard_t system for modifiers */
++/* (dont ask) */
++static keyboard_t *keyboard;
++static bool is_extended_scancode;
++#define EXTENDED(sc) ((sc) + 0x80)
++
++static constexpr struct { uint8_t scancode; uint32_t normal; uint32_t shifted; } keymap[] {
++    { 0x01, XK_Escape },
++    { 0x02, XK_1, XK_exclam }, { 0x03, XK_2, XK_at }, { 0x04, XK_3, XK_numbersign },
++    { 0x05, XK_4, XK_dollar }, { 0x06, XK_5, XK_percent }, { 0x07, XK_6, XK_asciicircum },
++    { 0x08, XK_7, XK_ampersand }, { 0x09, XK_8, XK_asterisk }, { 0x0a, XK_9, XK_parenleft },
++    { 0x0b, XK_0, XK_parenright }, { 0x0c, XK_minus, XK_underscore }, { 0x0d, XK_equal, XK_plus },
++    { 0x0e, XK_BackSpace }, { 0x0f, XK_Tab },
++    { 0x10, XK_q, XK_Q }, { 0x11, XK_w, XK_W }, { 0x12, XK_e, XK_E }, { 0x13, XK_r, XK_R },
++    { 0x14, XK_t, XK_T }, { 0x15, XK_y, XK_Y }, { 0x16, XK_u, XK_U }, { 0x17, XK_i, XK_I },
++    { 0x18, XK_o, XK_O }, { 0x19, XK_p, XK_P }, { 0x1a, XK_bracketleft, XK_braceleft },
++    { 0x1b, XK_bracketright, XK_braceright }, { 0x1c, XK_Return }, { 0x1d, XK_Control_L },
++    { 0x1e, XK_a, XK_A }, { 0x1f, XK_s, XK_S }, { 0x20, XK_d, XK_D }, { 0x21, XK_f, XK_F },
++    { 0x22, XK_g, XK_G }, { 0x23, XK_h, XK_H }, { 0x24, XK_j, XK_J }, { 0x25, XK_k, XK_K },
++    { 0x26, XK_l, XK_L }, { 0x27, XK_semicolon, XK_colon }, { 0x28, XK_apostrophe, XK_quotedbl },
++    { 0x29, XK_grave, XK_asciitilde }, { 0x2a, XK_Shift_L }, { 0x2b, XK_backslash, XK_bar },
++    { 0x2c, XK_z, XK_Z }, { 0x2d, XK_x, XK_X }, { 0x2e, XK_c, XK_C }, { 0x2f, XK_v, XK_V },
++    { 0x30, XK_b, XK_B }, { 0x31, XK_n, XK_N }, { 0x32, XK_m, XK_M }, { 0x33, XK_comma, XK_less },
++    { 0x34, XK_period, XK_greater }, { 0x35, XK_slash, XK_question }, { 0x36, XK_Shift_R },
++    { 0x37, XK_KP_Multiply }, { 0x38, XK_Alt_L }, { 0x39, XK_space }, { 0x3a, XK_Caps_Lock },
++    { 0x3b, XK_F1 }, { 0x3c, XK_F2 }, { 0x3d, XK_F3 }, { 0x3e, XK_F4 }, { 0x3f, XK_F5 },
++    { 0x40, XK_F6 }, { 0x41, XK_F7 }, { 0x42, XK_F8 }, { 0x43, XK_F9 }, { 0x44, XK_F10 },
++    { 0x45, XK_Num_Lock }, { 0x46, XK_Scroll_Lock }, { 0x47, XK_KP_7 }, { 0x48, XK_KP_8 },
++    { 0x49, XK_KP_9 }, { 0x4a, XK_KP_Subtract }, { 0x4b, XK_KP_4 }, { 0x4c, XK_KP_5 },
++    { 0x4d, XK_KP_6 }, { 0x4e, XK_KP_Add }, { 0x4f, XK_KP_1 }, { 0x50, XK_KP_2 },
++    { 0x51, XK_KP_3 }, { 0x52, XK_KP_0 }, { 0x53, XK_KP_Decimal }, { 0x57, XK_F11 }, { 0x58, XK_F12 },
++    { EXTENDED(0x1c), XK_KP_Enter }, { EXTENDED(0x1d), XK_Control_R },
++    { EXTENDED(0x38), XK_Alt_R }, { EXTENDED(0x47), XK_Home },
++    { EXTENDED(0x48), XK_Up }, { EXTENDED(0x49), XK_Page_Up },
++    { EXTENDED(0x4b), XK_Left }, { EXTENDED(0x4d), XK_Right },
++    { EXTENDED(0x4f), XK_End }, { EXTENDED(0x50), XK_Down },
++    { EXTENDED(0x51), XK_Page_Down }, { EXTENDED(0x52), XK_Insert },
++    { EXTENDED(0x53), XK_Delete }, { EXTENDED(0x5b), XK_Super_L },
++    { EXTENDED(0x5c), XK_Super_R },
++};
++
++static inline void ethereal_set_keymap(uint8_t scancode, uint32_t normal, uint32_t shifted = 0) {
++    g_keymap[scancode][0] = normal;
++    g_keymap[scancode][1] = shifted ? shifted : normal;
++}
++
++static void ethereal_initialize_keymap() {
++    memset(g_keymap, 0, sizeof(g_keymap));
++    memset(g_modifier_map, 0, sizeof(g_modifier_map));
++
++    for (const auto& entry : keymap)
++        ethereal_set_keymap(entry.scancode, entry.normal, entry.shifted);
++
++    g_modifier_map[0][0] = 0x2a + g_keymap_min_keycode;
++    g_modifier_map[0][1] = 0x36 + g_keymap_min_keycode;
++    g_modifier_map[1][0] = 0x3a + g_keymap_min_keycode;
++    g_modifier_map[2][0] = 0x1d + g_keymap_min_keycode;
++    g_modifier_map[2][1] = EXTENDED(0x1d) + g_keymap_min_keycode;
++    g_modifier_map[3][0] = 0x38 + g_keymap_min_keycode;
++    g_modifier_map[3][1] = EXTENDED(0x38) + g_keymap_min_keycode;
++    g_modifier_map[4][0] = 0x45 + g_keymap_min_keycode;
++    g_modifier_map[6][0] = EXTENDED(0x5b) + g_keymap_min_keycode;
++    g_modifier_map[6][1] = EXTENDED(0x5c) + g_keymap_min_keycode;
++    g_modifier_map[7][0] = EXTENDED(0x38) + g_keymap_min_keycode;
++}
++
++struct EtherealWindow final : public PlatformWindow {
++    ~EtherealWindow()
++    {
++        if (!window)
++            return;
++
++        window->d = nullptr;
++        if (window->state != CELESTIAL_STATE_CLOSED)
++            celestial_closeWindow(window);
++    }
++
++    window_t *window { nullptr };
++    WINDOW wid;
++    uint32_t width;
++    uint32_t height;
++};
++
++
++static bool ethereal_initialize(uint32_t *display_w, uint32_t *display_h) {
++    celestial_info_t *info =celestial_getServerInformation();
++    if (!info) {
++        fprintf(stderr, "ethereal_initialize: failed to get Celestial server information: %s\n", strerror(errno));
++        return false;
++    }
++
++    *display_w = info->screen_width;
++    *display_h = info->screen_height; 
++
++    keyboard = keyboard_create();
++    if (!keyboard) {
++        fprintf(stderr, "ethereal_initialize: failed to create keyboard state\n");
++        return false;
++    }
++
++    ethereal_initialize_keymap();
++    return true;
++}
++
++static void ethereal_mouse_handler(window_t *window, uint32_t event_type, void *event) {
++    if (!window->d)
++        return;
++    auto& ewindow = *static_cast<EtherealWindow*>(window->d);
++    if (event_type == CELESTIAL_EVENT_MOUSE_MOTION) {
++        celestial_event_mouse_motion_t *ev = (celestial_event_mouse_motion_t*)event;
++        on_mouse_move_event(ewindow.wid, ev->x, ev->y);;
++    } else if (event_type == CELESTIAL_EVENT_MOUSE_DRAG) {
++	celestial_event_mouse_drag_t *ev = (celestial_event_mouse_drag_t*)event;
++	on_mouse_move_event(ewindow.wid, ev->x, ev->y);
++    } else if (event_type == CELESTIAL_EVENT_MOUSE_BUTTON_DOWN) {
++        celestial_event_mouse_button_down_t *ev = (celestial_event_mouse_button_down_t *)event;
++        
++        uint8_t xbutton { 0 };
++        switch (ev->held) {
++            case CELESTIAL_MOUSE_BUTTON_LEFT: xbutton = 1; break;
++            case CELESTIAL_MOUSE_BUTTON_MIDDLE: xbutton = 2; break;
++            case CELESTIAL_MOUSE_BUTTON_RIGHT: xbutton = 3; break;
++            default: return;
++        }
++
++        on_mouse_button_event(ewindow.wid, xbutton, true);
++    } else if (event_type == CELESTIAL_EVENT_MOUSE_BUTTON_UP) {
++        celestial_event_mouse_button_up_t *ev = (celestial_event_mouse_button_up_t *)event;
++        
++        uint8_t xbutton { 0 };
++        switch (ev->released) {
++            case CELESTIAL_MOUSE_BUTTON_LEFT: xbutton = 1; break;
++            case CELESTIAL_MOUSE_BUTTON_MIDDLE: xbutton = 2; break;
++            case CELESTIAL_MOUSE_BUTTON_RIGHT: xbutton = 3; break;
++            default: return;
++        }
++
++        on_mouse_button_event(ewindow.wid, xbutton, false);
++    } else if (event_type == CELESTIAL_EVENT_MOUSE_EXIT) {
++        on_window_leave_event(ewindow.wid);
++    }
++}
++
++static void ethereal_window_handler(window_t *window, uint32_t event_type, void *event) {
++    if (!window->d) return;
++    auto& ewindow = *static_cast<EtherealWindow*>(window->d);
++    if (event_type == CELESTIAL_EVENT_FOCUSED) {
++        on_window_focus_event(ewindow.wid, true);
++    } else if (event_type == CELESTIAL_EVENT_UNFOCUSED) {
++        on_window_focus_event(ewindow.wid, false);
++    } else if (event_type == CELESTIAL_EVENT_WINDOW_CLOSE) {
++        on_window_close_event(ewindow.wid);
++    } else if (event_type == CELESTIAL_EVENT_RESIZE) {
++        auto *resize = static_cast<celestial_event_resize_t*>(event);
++        ewindow.width = resize->new_width;
++        ewindow.height = resize->new_height;
++        on_window_resize_event(ewindow.wid, resize->new_width, resize->new_height);
++    } else if (event_type == CELESTIAL_EVENT_POSITION_CHANGE) {
++        auto *change = static_cast<celestial_event_position_change_t*>(event);
++        on_window_move_event(ewindow.wid, change->x, change->y);
++    }
++}
++
++static void ethereal_key_handler(window_t *window, uint32_t event_type, void *event) {
++    if (!window->d || event_type != CELESTIAL_EVENT_KEY_EVENT) return;
++
++    auto& ewindow = *static_cast<EtherealWindow*>(window->d);
++    auto* key = static_cast<celestial_event_key_t*>(event);
++    const key_event_t raw = key->ev;
++    keyboard_event_t translated;
++    keyboard_event2(keyboard, &key->ev, &translated);
++
++    if (raw.scancode == 0xe0) {
++        is_extended_scancode = true;
++        return;
++    }
++
++    uint8_t scancode = raw.scancode;
++    if (scancode >= 0x80) scancode -= 0x80;
++    if (is_extended_scancode) {
++        scancode = EXTENDED(scancode);
++        is_extended_scancode = false;
++    }
++
++    uint8_t xmod =
++        ((translated.mods & (KEYBOARD_MOD_LEFT_SHIFT | KEYBOARD_MOD_RIGHT_SHIFT)) ? (1 << 0) : 0) |
++        ((translated.mods & (KEYBOARD_MOD_LEFT_CTRL  | KEYBOARD_MOD_RIGHT_CTRL))  ? (1 << 2) : 0) |
++        ((translated.mods & (KEYBOARD_MOD_LEFT_ALT   | KEYBOARD_MOD_RIGHT_ALT))   ? (1 << 3) : 0) |
++        ((translated.mods & (KEYBOARD_MOD_LEFT_SUPER | KEYBOARD_MOD_RIGHT_SUPER)) ? (1 << 6) : 0) |
++        ((translated.mods & KEYBOARD_MOD_RIGHT_ALT) ? (1 << 7) : 0);
++
++    on_key_event(ewindow.wid, scancode, xmod, translated.type == KEYBOARD_EVENT_PRESS);
++}
++
++static BAN::ErrorOr<BAN::UniqPtr<PlatformWindow>> ethereal_create_window(PlatformWindow* parent, WindowType type, WINDOW wid, int32_t x, int32_t y, uint32_t width, uint32_t height) {
++    (void)parent;
++
++    auto window = TRY(BAN::UniqPtr<EtherealWindow>::create());
++
++    wid_t cwid = type == WindowType::Popup
++        ? celestial_createWindowUndecorated(CELESTIAL_WINDOW_FLAG_SOLID, width, height)
++        : celestial_createWindow(0, width, height);
++    if (cwid < 0) {
++        fprintf(stderr, "ethereal_create_window: celestial_createWindow: %s\n", strerror(errno));
++        return BAN::Error::from_errno(errno);
++    }
++    
++    window_t *win = celestial_getWindow(cwid);
++    if (!win) {
++        fprintf(stderr, "ethereal_create_window: celestial_getWindow: %s\n", strerror(errno));
++        return BAN::Error::from_errno(errno);
++    }
++
++    if (celestial_setWindowPosition(win, x, y) < 0) {
++        fprintf(stderr, "ethereal_create_window: celestial_setWindowPosition: %s\n", strerror(errno));
++        celestial_closeWindow(win);
++        return BAN::Error::from_errno(errno);
++    }
++
++    window->window = win;
++    window->wid = wid;
++    window->width = width;
++    window->height = height;
++    win->d = window.ptr();
++
++    // Setup event handlers
++    celestial_setHandler(win, CELESTIAL_EVENT_MOUSE_MOTION, ethereal_mouse_handler);
++    celestial_setHandler(win, CELESTIAL_EVENT_MOUSE_BUTTON_DOWN, ethereal_mouse_handler);
++    celestial_setHandler(win, CELESTIAL_EVENT_MOUSE_BUTTON_UP, ethereal_mouse_handler);
++    celestial_setHandler(win, CELESTIAL_EVENT_MOUSE_EXIT,  ethereal_mouse_handler);
++    celestial_setHandler(win, CELESTIAL_EVENT_FOCUSED,  ethereal_window_handler);
++    celestial_setHandler(win, CELESTIAL_EVENT_UNFOCUSED,  ethereal_window_handler);
++    celestial_setHandler(win, CELESTIAL_EVENT_WINDOW_CLOSE, ethereal_window_handler);
++    celestial_setHandler(win, CELESTIAL_EVENT_POSITION_CHANGE, ethereal_window_handler);
++    celestial_setHandler(win, CELESTIAL_EVENT_RESIZE, ethereal_window_handler);
++    celestial_setHandler(win, CELESTIAL_EVENT_KEY_EVENT, ethereal_key_handler);
++    celestial_setHandler(win, CELESTIAL_EVENT_MOUSE_DRAG, ethereal_mouse_handler);
++
++    // celestial is connected now
++    if (!has_registered) {
++        register_event_fd(celestial_getSocketFile(), nullptr);   
++        has_registered = true;
++    }
++
++    return BAN::UniqPtr<PlatformWindow>(BAN::move(window));
++}
++
++static void ethereal_invalidate(PlatformWindow* pwindow, const uint32_t* pixels, uint32_t x, uint32_t y, uint32_t width, uint32_t height) {
++    auto &window = *static_cast<EtherealWindow*>(pwindow);
++    window_t *cwindow = (window.window);    
++    gfx_context_t *ctx = celestial_getGraphicsContext(cwindow);
++    uint32_t *framebuffer = (uint32_t*)ctx->backbuffer;
++
++    if (x >= cwindow->width || y >= cwindow->height) {
++        return;
++    }
++
++    if (width > cwindow->width - x) width = cwindow->width - x;
++    if (height > cwindow->height - y) height = cwindow->height - y;
++    
++    for (uint32_t y_off = 0; y_off < height; y_off++) {
++        for (uint32_t x_off = 0; x_off < width; x_off++) {
++            framebuffer[(y + y_off) * (ctx->pitch/4) + (x + x_off)] = pixels[(y + y_off) * window.width + (x + x_off)] | 0xff000000;
++        }
++    }
++
++    gfx_render(ctx);
++    celestial_flip(cwindow);
++}
++
++static void ethereal_poll_events(void *window) {
++    celestial_poll();
++}
++
++static void ethereal_query_pointer(int32_t *x, int32_t *y){
++    int mx, my;
++    celestial_queryMouse(&mx, &my);
++    *x = mx;
++    *y = my;
++}
++
++static void ethereal_request_reposition(PlatformWindow *pwindow, int32_t x, int32_t y) {
++    auto &window = *static_cast<EtherealWindow*>(pwindow);
++    window_t *cwindow = (window.window);
++    celestial_setWindowPosition(cwindow, x, y);
++}
++
++static void ethereal_request_resize(PlatformWindow *pwindow, uint32_t width, uint32_t height) {
++    auto &window = *static_cast<EtherealWindow*>(pwindow);
++    celestial_resizeWindow(window.window, width, height);
++}
++
++PlatformOps g_platform_ops = {
++    .initialize         = ethereal_initialize,
++    .poll_events        = ethereal_poll_events,
++    .create_window      = ethereal_create_window,
++    .invalidate         = ethereal_invalidate,
++    .request_resize     = ethereal_request_resize,
++    .request_reposition = ethereal_request_reposition,
++    .request_fullscreen = nullptr,
++    .warp_pointer       = nullptr,
++    .query_pointer      = ethereal_query_pointer,
++    .set_pointer_grab   = nullptr,
++    .create_system_cursor   = nullptr,
++    .set_cursor         = nullptr,
++};

@@ -1,0 +1,224 @@
+diff --git a/3rdparty/libbacktrace/wscript b/3rdparty/libbacktrace/wscript
+index 2e076a56..98aca8d5 100644
+--- a/3rdparty/libbacktrace/wscript
++++ b/3rdparty/libbacktrace/wscript
+@@ -180,7 +180,6 @@ def build(bld):
+ 		features = 'frandomseed' if bld.env.HAVE_FRANDOM_SEED else '',
+ 		use = 'EXTRAFLAGS lzma z zstd',
+ 		includes = '. libbacktrace/',
+-		export_defines = 'HAVE_LIBBACKTRACE=1',
+ 		export_includes = 'libbacktrace/'
+ 	)
+ 
+diff --git a/engine/common/net_http.c b/engine/common/net_http.c
+index ff6fd41b..4052c7ad 100644
+--- a/engine/common/net_http.c
++++ b/engine/common/net_http.c
+@@ -261,14 +261,16 @@ static int HTTP_FileCreateSocket( httpfile_t *file )
+ 		return 0;
+ 	}
+ 
++#if !XASH_ETHEREAL
+ 	if( ioctlsocket( file->socket, FIONBIO, (void *)&mode ) < 0 )
+ 	{
+ 		Con_Printf( S_ERROR "%s: ioctl() returned %s\n", __func__, NET_ErrorString());
+ 		HTTP_FreeFile( file, true );
+ 		return 0;
+ 	}
++#endif
+ 
+-#if XASH_LINUX
++#if XASH_LINUX || XASH_ETHEREAL
+ 
+ 	res = fcntl( file->socket, F_GETFL, 0 );
+ 
+diff --git a/engine/common/net_ws.c b/engine/common/net_ws.c
+index 7ee4cba0..679d570c 100644
+--- a/engine/common/net_ws.c
++++ b/engine/common/net_ws.c
+@@ -1364,7 +1364,13 @@ static qboolean NET_QueuePacket( netsrc_t sock, netadr_t *from, byte *data, size
+ 	byte		buf[NET_MAX_FRAGMENT];
+ 	int		ret, protocol;
+ 	int		net_socket;
++	
++#ifdef XASH_ETHEREAL
++	socklen_t	addr_len;
++#else
+ 	WSAsize_t	addr_len;
++#endif
++
+ 	struct sockaddr_storage	addr = { 0 };
+ 
+ 	*length = 0;
+@@ -1625,7 +1631,12 @@ static int NET_IPSocket( const char *net_iface, int port, int family )
+ 		return INVALID_SOCKET;
+ 	}
+ 
++
++#ifdef XASH_ETHEREAL
++	if( NET_IsSocketError( ioctl( net_socket, FIONBIO, (void*)&_true )))
++#else
+ 	if( NET_IsSocketError( ioctlsocket( net_socket, FIONBIO, (void*)&_true )))
++#endif
+ 	{
+ 		struct timeval timeout;
+ 
+@@ -1686,6 +1697,7 @@ static int NET_IPSocket( const char *net_iface, int port, int family )
+ 			optval = 0x10; // IPTOS_LOWDELAY
+ 			Con_Printf( "Enabling LOWDELAY TOS option\n" );
+ 
++#ifndef XASH_ETHEREAL
+ 			if( NET_IsSocketError( setsockopt( net_socket, IPPROTO_IP, IP_TOS, (const char *)&optval, sizeof( optval ))))
+ 			{
+ 				err = WSAGetLastError();
+@@ -1694,6 +1706,7 @@ static int NET_IPSocket( const char *net_iface, int port, int family )
+ 				closesocket( net_socket );
+ 				return INVALID_SOCKET;
+ 			}
++#endif
+ 		}
+ 
+ 		if( Sys_CheckParm( "-loopback" ))
+@@ -1801,7 +1814,12 @@ static void NET_DetermineLocalAddress( void )
+ 	char		hostname[512];
+ 	char		buff[512];
+ 	struct sockaddr_storage	address;
++
++#ifdef XASH_ETHEREAL
++	socklen_t		namelen;
++#else
+ 	WSAsize_t		namelen;
++#endif
+ 	const char		*net_addr_string;
+ 
+ 	memset( &net_local, 0, sizeof( netadr_t ));
+diff --git a/engine/common/whereami.c b/engine/common/whereami.c
+index 3eb3f086..d0b390ad 100644
+--- a/engine/common/whereami.c
++++ b/engine/common/whereami.c
+@@ -839,7 +839,7 @@ int WAI_PREFIX(getModulePath)(char* out, int capacity, int* dirname_length)
+   return -1;
+ }
+ 
+-#elif defined(__SWITCH__) || defined(__vita__) || defined(__EMSCRIPTEN__)
++#elif defined(__SWITCH__) || defined(__vita__) || defined(__EMSCRIPTEN__) || defined(__ETHEREAL__)
+ 
+ /* Not possible on this platform */
+ 
+diff --git a/engine/common/zone.c b/engine/common/zone.c
+index f091b1ae..88f580eb 100644
+--- a/engine/common/zone.c
++++ b/engine/common/zone.c
+@@ -156,14 +156,14 @@ static qboolean Mem_CheckAllocHeader( const char *func, const memheader_t *mem,
+ 	if( mem->sentinel1 != MEMHEADER_SENTINEL1 )
+ 	{
+ 		memfilename = Mem_CheckFilename( mem->filename );
+-		Sys_Error( "%s: trashed header sentinel 1 (alloc at %s:%i, check at %s:%i)\n", func, memfilename, mem->fileline, filename, fileline );
++		Sys_Error( "%s: trashed header sentinel 1 (alloc at %p, alloc at %s:%i, check at %s:%i)\n", func, mem, memfilename, mem->fileline, filename, fileline );
+ 		return false;
+ 	}
+ 
+ 	if( *((byte *)mem + sizeof( memheader_t ) + mem->size ) != MEMHEADER_SENTINEL2 )
+ 	{
+ 		memfilename = Mem_CheckFilename( mem->filename ); // make sure what we don't crash var_args
+-		Sys_Error( "%s: trashed header sentinel 2 (alloc at %s:%i, check at %s:%i)\n", func, memfilename, mem->fileline, filename, fileline );
++		Sys_Error( "%s: trashed header sentinel 2 (alloc at %p, alloc at %s:%i, check at %s:%i)\n", func, mem, memfilename, mem->fileline, filename, fileline );
+ 		return false;
+ 	}
+ 
+diff --git a/engine/platform/posix/lib_posix.c b/engine/platform/posix/lib_posix.c
+index 23d1c3b1..c4d840b0 100644
+--- a/engine/platform/posix/lib_posix.c
++++ b/engine/platform/posix/lib_posix.c
+@@ -208,6 +208,7 @@ const char *COM_NameForFunction( void *hInstance, void *function )
+ 		return Loader_GetFuncName_int(wm, function);
+ 	else
+ #endif
++#ifndef XASH_ETHEREAL
+ 	// NOTE: dladdr() is a glibc extension
+ 	{
+ 		Dl_info info = {0};
+@@ -215,6 +216,7 @@ const char *COM_NameForFunction( void *hInstance, void *function )
+ 		if( ret && info.dli_sname )
+ 			return COM_GetPlatformNeutralName( info.dli_sname );
+ 	}
++#endif
+ #ifdef XASH_ALLOW_SAVERESTORE_OFFSETS
+ 	return COM_OffsetNameForFunction( function );
+ #else
+diff --git a/filesystem/VFileSystem009.cpp b/filesystem/VFileSystem009.cpp
+index 6b462f70..f84a4010 100644
+--- a/filesystem/VFileSystem009.cpp
++++ b/filesystem/VFileSystem009.cpp
+@@ -16,7 +16,8 @@ GNU General Public License for more details.
+ #include <stdio.h>
+ #include <time.h>
+ #include <stdarg.h>
+-#include ALLOCA_H
++#include <alloca.h>
++
+ #include "crtlib.h"
+ #include "filesystem.h"
+ #include "filesystem_internal.h"
+diff --git a/public/build.c b/public/build.c
+index 49a82112..eb15a0e8 100644
+--- a/public/build.c
++++ b/public/build.c
+@@ -123,6 +123,8 @@ const char *Q_PlatformStringByID( const int platform )
+ 		return "sunos";
+ 	case PLATFORM_HURD:
+ 		return "hurd";
++	case PLATFORM_ETHEREAL:
++		return "ethereal";
+ 	}
+ 
+ 	assert( 0 );
+diff --git a/public/build.h b/public/build.h
+index bba120be..f6a40339 100644
+--- a/public/build.h
++++ b/public/build.h
+@@ -83,6 +83,7 @@ Then you can use another oneliner to query all variables:
+ #undef XASH_RISCV_SOFTFP
+ #undef XASH_SERENITY
+ #undef XASH_SUNOS
++#undef XASH_ETHEREAL
+ #undef XASH_TERMUX
+ #undef XASH_WIN32
+ #undef XASH_X86
+@@ -136,12 +137,14 @@ Then you can use another oneliner to query all variables:
+ 		#define XASH_WASI 1
+ 	#elif defined __sun__
+ 		#define XASH_SUNOS 1
++	#elif defined __ETHEREAL__
++		#define XASH_ETHEREAL 1
+ 	#elif defined __EMSCRIPTEN__
+ 		#define XASH_EMSCRIPTEN 1
+ 	#elif defined __gnu_hurd__
+ 		#define XASH_HURD 1
+ 	#else
+-		#error
++		#error "Build target not found"
+ 	#endif
+ #endif
+ 
+diff --git a/public/buildenums.h b/public/buildenums.h
+index f4f3e155..68a98082 100644
+--- a/public/buildenums.h
++++ b/public/buildenums.h
+@@ -44,6 +44,7 @@ GNU General Public License for more details.
+ #define PLATFORM_WASI       15
+ #define PLATFORM_SUNOS      16
+ #define PLATFORM_HURD       17
++#define PLATFORM_ETHEREAL   18
+ 
+ #if XASH_WIN32
+ 	#define XASH_PLATFORM PLATFORM_WIN32
+@@ -79,6 +80,8 @@ GNU General Public License for more details.
+ 	#define XASH_PLATFORM PLATFORM_SUNOS
+ #elif XASH_HURD
+ 	#define XASH_PLATFORM PLATFORM_HURD
++#elif XASH_ETHEREAL
++	#define XASH_PLATFORM PLATFORM_ETHEREAL
+ #else
+ 	#error
+ #endif

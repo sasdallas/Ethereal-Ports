@@ -1,0 +1,57 @@
+diff -Naur old_extract/tiff-4.7.0/config/config.sub new_workspace/tiff-4.7.0/config/config.sub
+--- a/config/config.sub	2024-09-11 02:38:00.000000000 -0500
++++ b/config/config.sub	2025-09-14 17:07:59.612045917 -0500
+@@ -2004,6 +2004,7 @@
+ 	| emscripten* \
+ 	| emx* \
+ 	| es* \
++	| ethereal* \
+ 	| fiwix* \
+ 	| freebsd* \
+ 	| fuchsia* \
+diff -Naur old_extract/tiff-4.7.0/configure new_workspace/tiff-4.7.0/configure
+--- a/configure	2024-09-11 02:42:32.000000000 -0500
++++ b/configure	2026-09-19 16:18:42.126167507 -0500
+@@ -6372,6 +6372,10 @@
+   lt_cv_deplibs_check_method=pass_all
+   ;;
+ 
++ethereal*)
++      lt_cv_deplibs_check_method=pass_all
++      ;;
++
+ hpux10.20* | hpux11*)
+   lt_cv_file_magic_cmd=/usr/bin/file
+   case $host_cpu in
+@@ -12213,6 +12217,15 @@
+   shlibpath_var=LD_LIBRARY_PATH
+   ;;
+ 
++ethereal*)
++  version_type=linux # correct to gnu/linux during the next big refactor
++  need_lib_prefix=no
++  need_version=no
++  library_names_spec='$libname$release$shared_ext$versuffix $libname$release$shared_ext$major $libname$shared_ext'
++  soname_spec='$libname$release$shared_ext$major'
++  shlibpath_var=LD_LIBRARY_PATH
++  ;;
++
+ freebsd* | dragonfly*)
+   # DragonFly does not have aout.  When/if they implement a new
+   # versioning mechanism, adjust this.
+@@ -16603,6 +16616,15 @@
+   version_type=linux # correct to gnu/linux during the next big refactor
+   need_lib_prefix=no
+   need_version=no
++  library_names_spec='$libname$release$shared_ext$versuffix $libname$release$shared_ext$major $libname$shared_ext'
++  soname_spec='$libname$release$shared_ext$major'
++  shlibpath_var=LD_LIBRARY_PATH
++  ;;
++
++ethereal*)
++  version_type=linux # correct to gnu/linux during the next big refactor
++  need_lib_prefix=no
++  need_version=no
+   library_names_spec='$libname$release$shared_ext$versuffix $libname$release$shared_ext$major $libname$shared_ext'
+   soname_spec='$libname$release$shared_ext$major'
+   shlibpath_var=LD_LIBRARY_PATH

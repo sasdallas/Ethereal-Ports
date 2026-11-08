@@ -1,6 +1,6 @@
 diff -Naur old_extract/mesa-25.0.7/include/drm-uapi/drm.h new_workspace/mesa-25.0.7/include/drm-uapi/drm.h
 --- a/include/drm-uapi/drm.h	2025-05-28 10:20:23.000000000 -0500
-+++ b/include/drm-uapi/drm.h	2026-06-20 10:33:08.840861621 -0500
++++ b/include/drm-uapi/drm.h	2026-09-18 15:35:19.211534256 -0500
 @@ -44,7 +44,13 @@
  #else /* One of the BSDs */
  
@@ -17,7 +17,7 @@ diff -Naur old_extract/mesa-25.0.7/include/drm-uapi/drm.h new_workspace/mesa-25.
  typedef uint8_t  __u8;
 diff -Naur old_extract/mesa-25.0.7/meson.build new_workspace/mesa-25.0.7/meson.build
 --- a/meson.build	2025-05-28 10:20:23.000000000 -0500
-+++ b/meson.build	2026-06-20 09:58:02.410008825 -0500
++++ b/meson.build	2026-09-18 15:35:19.211836153 -0500
 @@ -127,7 +127,7 @@
  # Only build shared_glapi if at least one OpenGL API is enabled
  with_shared_glapi = with_shared_glapi and with_any_opengl
@@ -36,22 +36,9 @@ diff -Naur old_extract/mesa-25.0.7/meson.build new_workspace/mesa-25.0.7/meson.b
    pre_args += '-D_GNU_SOURCE'
  elif host_machine.system() == 'sunos'
    pre_args += '-D__EXTENSIONS__'
-diff -Naur old_extract/mesa-25.0.7/src/gallium/auxiliary/pipe-loader/pipe_loader_drm.c new_workspace/mesa-25.0.7/src/gallium/auxiliary/pipe-loader/pipe_loader_drm.c
---- a/src/gallium/auxiliary/pipe-loader/pipe_loader_drm.c	2025-05-28 10:20:23.000000000 -0500
-+++ b/src/gallium/auxiliary/pipe-loader/pipe_loader_drm.c	2026-06-20 10:33:25.382444342 -0500
-@@ -128,6 +128,9 @@
- static int
- get_nctx_caps(int fd, struct virgl_renderer_capset_drm *caps)
- {
-+
-+   DRM_IOWR(0xb4, struct drm_virtgpu_get_caps);
-+
-    struct drm_virtgpu_get_caps args = {
-          .cap_set_id = VIRGL_RENDERER_CAPSET_DRM,
-          .cap_set_ver = 0,
 diff -Naur old_extract/mesa-25.0.7/src/gallium/auxiliary/renderonly/renderonly.c new_workspace/mesa-25.0.7/src/gallium/auxiliary/renderonly/renderonly.c
 --- a/src/gallium/auxiliary/renderonly/renderonly.c	2025-05-28 10:20:23.000000000 -0500
-+++ b/src/gallium/auxiliary/renderonly/renderonly.c	2026-06-20 10:24:28.247315667 -0500
++++ b/src/gallium/auxiliary/renderonly/renderonly.c	2026-09-18 15:35:19.212193355 -0500
 @@ -37,6 +37,7 @@
  #include "util/u_inlines.h"
  #include "util/u_memory.h"
@@ -62,7 +49,7 @@ diff -Naur old_extract/mesa-25.0.7/src/gallium/auxiliary/renderonly/renderonly.c
  			   struct renderonly *ro)
 diff -Naur old_extract/mesa-25.0.7/src/gallium/drivers/llvmpipe/lp_fence.c new_workspace/mesa-25.0.7/src/gallium/drivers/llvmpipe/lp_fence.c
 --- a/src/gallium/drivers/llvmpipe/lp_fence.c	2025-05-28 10:20:23.000000000 -0500
-+++ b/src/gallium/drivers/llvmpipe/lp_fence.c	2026-06-20 10:34:59.095151488 -0500
++++ b/src/gallium/drivers/llvmpipe/lp_fence.c	2026-09-18 15:35:19.212296539 -0500
 @@ -62,7 +62,14 @@
  
     do {
@@ -80,7 +67,7 @@ diff -Naur old_extract/mesa-25.0.7/src/gallium/drivers/llvmpipe/lp_fence.c new_w
           if (fds.revents & (POLLERR | POLLNVAL)) {
 diff -Naur old_extract/mesa-25.0.7/src/gallium/targets/dril/dril_target.c new_workspace/mesa-25.0.7/src/gallium/targets/dril/dril_target.c
 --- a/src/gallium/targets/dril/dril_target.c	2025-05-28 10:20:23.000000000 -0500
-+++ b/src/gallium/targets/dril/dril_target.c	2026-06-20 10:03:16.816841796 -0500
++++ b/src/gallium/targets/dril/dril_target.c	2026-09-18 15:42:01.261373636 -0500
 @@ -350,8 +350,10 @@
  
     /* dlopen/dlsym to avoid linkage */
@@ -148,31 +135,30 @@ diff -Naur old_extract/mesa-25.0.7/src/gallium/targets/dril/dril_target.c new_wo
        enum pipe_format pformat = fourcc_to_pipe_format(format);
  
        /* srgb configs go after base configs */
-@@ -430,6 +448,21 @@
+@@ -430,6 +448,20 @@
     /* check last format for srgbness too */
     if (c && has_srgb)
        c = add_srgb_config(configs, c, last_pformat, last_start);
 +
-+   fprintf(stderr, "c: %u\n", c);
 +   /* surfaceless EGL returns no native visual IDs, populate directly */
-+if (c == 0) {
-+   configs = calloc(ARRAY_SIZE(drilConfigs) * 2 + 1, sizeof(struct gl_config));
-+   for (unsigned i = 0; i < ARRAY_SIZE(drilConfigs); i++) {
-+      /* single-buffered */
-+      configs[c] = mem_dup(&drilConfigs[i], sizeof(drilConfigs[i]));
-+      configs[c++]->doubleBufferMode = 0;
-+      /* double-buffered */
-+      configs[c] = mem_dup(&drilConfigs[i], sizeof(drilConfigs[i]));
-+      configs[c++]->doubleBufferMode = 1;
++   if (c == 0) {
++   	configs = calloc(ARRAY_SIZE(drilConfigs) * 2 + 1, sizeof(struct gl_config));
++   	for (unsigned i = 0; i < ARRAY_SIZE(drilConfigs); i++) {
++      		/* single-buffered */
++      		configs[c] = mem_dup(&drilConfigs[i], sizeof(drilConfigs[i]));
++      		configs[c++]->doubleBufferMode = 0;
++      		/* double-buffered */
++      		configs[c] = mem_dup(&drilConfigs[i], sizeof(drilConfigs[i]));
++      		configs[c++]->doubleBufferMode = 1;
++   	}
 +   }
-+}
 +
  out_egl:
     free(eglconfigs);
     /* don't forget cleanup */
 diff -Naur old_extract/mesa-25.0.7/src/glx/glxcmds.c new_workspace/mesa-25.0.7/src/glx/glxcmds.c
 --- a/src/glx/glxcmds.c	2025-05-28 10:20:23.000000000 -0500
-+++ b/src/glx/glxcmds.c	2026-06-20 10:02:34.218628001 -0500
++++ b/src/glx/glxcmds.c	2026-09-18 15:35:19.212585923 -0500
 @@ -1831,6 +1831,10 @@
  __glxGetMscRate(struct glx_screen *psc,
        int32_t * numerator, int32_t * denominator)
@@ -186,7 +172,7 @@ diff -Naur old_extract/mesa-25.0.7/src/glx/glxcmds.c new_workspace/mesa-25.0.7/s
     int dot_clock;
 diff -Naur old_extract/mesa-25.0.7/src/util/detect_os.h new_workspace/mesa-25.0.7/src/util/detect_os.h
 --- a/src/util/detect_os.h	2025-05-28 10:20:23.000000000 -0500
-+++ b/src/util/detect_os.h	2026-06-20 09:56:02.103884960 -0500
++++ b/src/util/detect_os.h	2026-09-18 15:35:19.212776070 -0500
 @@ -91,6 +91,10 @@
  #define DETECT_OS_POSIX 1
  #endif
@@ -198,9 +184,27 @@ diff -Naur old_extract/mesa-25.0.7/src/util/detect_os.h new_workspace/mesa-25.0.
  
  /*
   * Make sure DETECT_OS_* are always defined, so that they can be used with #if
+diff -Naur old_extract/mesa-25.0.7/src/util/libsync.h new_workspace/mesa-25.0.7/src/util/libsync.h
+--- a/src/util/libsync.h	2025-05-28 10:20:23.000000000 -0500
++++ b/src/util/libsync.h	2026-09-18 15:37:47.951604980 -0500
+@@ -104,6 +104,14 @@
+ 	uint64_t	sync_fence_info;
+ };
+ 
++#ifdef __ETHEREAL__
++#define _IOC(dir,type,nr,size) (((dir) << 30) | ((type) << 8) | ((nr) << 0) | ((size) << 16))
++#define _IO(type,nr)           _IOC(0, (type), (nr), 0)
++#define _IOR(type,nr,size)     _IOC(2, (type), (nr), sizeof(size))
++#define _IOW(type,nr,size)     _IOC(1, (type), (nr), sizeof(size))
++#define _IOWR(type,nr,size)    _IOC(3, (type), (nr), sizeof(size))
++#endif
++
+ #define SYNC_IOC_MAGIC		'>'
+ #define SYNC_IOC_MERGE		_IOWR(SYNC_IOC_MAGIC, 3, struct sync_merge_data)
+ #define SYNC_IOC_FILE_INFO	_IOWR(SYNC_IOC_MAGIC, 4, struct sync_file_info)
 diff -Naur old_extract/mesa-25.0.7/src/util/os_misc.c new_workspace/mesa-25.0.7/src/util/os_misc.c
 --- a/src/util/os_misc.c	2025-05-28 10:20:23.000000000 -0500
-+++ b/src/util/os_misc.c	2026-06-20 09:56:16.979472401 -0500
++++ b/src/util/os_misc.c	2026-09-18 15:35:19.212873494 -0500
 @@ -57,7 +57,7 @@
  #  include <unistd.h>
  #  include <log/log.h>
@@ -221,7 +225,7 @@ diff -Naur old_extract/mesa-25.0.7/src/util/os_misc.c new_workspace/mesa-25.0.7/
  
 diff -Naur old_extract/mesa-25.0.7/src/util/u_thread.c new_workspace/mesa-25.0.7/src/util/u_thread.c
 --- a/src/util/u_thread.c	2025-05-28 10:20:23.000000000 -0500
-+++ b/src/util/u_thread.c	2026-06-20 09:56:59.492594564 -0500
++++ b/src/util/u_thread.c	2026-09-18 15:35:19.212979954 -0500
 @@ -75,7 +75,7 @@
  void u_thread_setname( const char *name )
  {

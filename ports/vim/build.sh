@@ -1,7 +1,7 @@
 NAME="vim"
 VERSION="9.2.0538"
 TARBALL_URL="https://github.com/vim/vim/archive/refs/tags/v$VERSION.tar.gz"
-DEPENDS=("ncurses")
+DEPENDS=("ncurses" "libiconv")
 
 configure() {
     ./configure --with-tlib=ncurses \

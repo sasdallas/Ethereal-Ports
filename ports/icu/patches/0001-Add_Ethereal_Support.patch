@@ -1,0 +1,11 @@
+diff -Naur old_extract/icu/source/config.sub new_workspace/icu/source/config.sub
+--- a/source/config.sub	2025-03-13 13:31:23.000000000 -0500
++++ b/source/config.sub	2026-09-19 11:00:12.644887466 -0500
+@@ -2006,6 +2006,7 @@
+ 	| es* \
+ 	| fiwix* \
+ 	| freebsd* \
++	| ethereal* \
+ 	| fuchsia* \
+ 	| genix* \
+ 	| genode* \

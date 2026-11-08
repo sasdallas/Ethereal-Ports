@@ -1,0 +1,41 @@
+diff -Naur old_extract/libtasn1-4.20.0/build-aux/config.sub new_workspace/libtasn1-4.20.0/build-aux/config.sub
+--- a/build-aux/config.sub	2025-02-01 11:11:54.000000000 -0600
++++ b/build-aux/config.sub	2026-06-19 16:36:19.844240094 -0500
+@@ -2006,6 +2006,7 @@
+ 	| es* \
+ 	| fiwix* \
+ 	| freebsd* \
++	| ethereal* \
+ 	| fuchsia* \
+ 	| genix* \
+ 	| genode* \
+diff -Naur old_extract/libtasn1-4.20.0/configure new_workspace/libtasn1-4.20.0/configure
+--- a/configure	2025-02-01 11:11:54.000000000 -0600
++++ b/configure	2026-06-19 16:36:23.545064353 -0500
+@@ -8900,6 +8900,10 @@
+   lt_cv_deplibs_check_method=pass_all
+   ;;
+ 
++ethereal*)
++      lt_cv_deplibs_check_method=pass_all
++      ;;
++
+ hpux10.20* | hpux11*)
+   lt_cv_file_magic_cmd=$FILECMD
+   case $host_cpu in
+@@ -14641,6 +14645,15 @@
+   version_type=linux # correct to gnu/linux during the next big refactor
+   need_lib_prefix=no
+   need_version=no
++  library_names_spec='$libname$release$shared_ext$versuffix $libname$release$shared_ext$major $libname$shared_ext'
++  soname_spec='$libname$release$shared_ext$major'
++  shlibpath_var=LD_LIBRARY_PATH
++  ;;
++
++ethereal*)
++  version_type=linux # correct to gnu/linux during the next big refactor
++  need_lib_prefix=no
++  need_version=no
+   library_names_spec='$libname$release$shared_ext$versuffix $libname$release$shared_ext$major $libname$shared_ext'
+   soname_spec='$libname$release$shared_ext$major'
+   shlibpath_var=LD_LIBRARY_PATH

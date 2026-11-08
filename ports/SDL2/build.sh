@@ -14,17 +14,17 @@ SDL_GL_SETTING=ON
 SDL_BUILD_DEBUG=0
 
 if get_bool_option "SDL_NO_GL"; then
-    info "Building SDL2 without GL support"
+    # info "Building SDL2 without GL support"
     SDL_GL_SETTING=OFF
 else
     GL_BACKEND=$(get_option "SDL_GL_BACKEND" "mesa")
     
-    info "Using GL backend $GL_BACKEND"
+    # info "Using GL backend $GL_BACKEND"
     DEPENDS+=($GL_BACKEND)
 fi
 
 if get_bool_option "SDL_DEBUG"; then
-    info "Building SDL2 with debug support"
+    # info "Building SDL2 with debug support"
     SDL_BUILD_DEBUG=1
 fi
 
@@ -38,7 +38,7 @@ configure() {
             -DCMAKE_BUILD_TYPE=$([[ $SDL_BUILD_DEBUG == 1 ]] && echo "Debug" || echo "Release") \
             -DSDL_LIBSAMPLERATE=OFF \
             -DSDL_STATIC=OFF \
-            -DSDL_OPENGL=$SDL_GL_SETTING \
+            -DSDL_OPENGL=$SDL_GL_SETTING -DSDL_X11=TRUE \
             || exit 1
 }
 

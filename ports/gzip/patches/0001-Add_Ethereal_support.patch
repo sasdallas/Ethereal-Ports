@@ -1,0 +1,11 @@
+diff -Naur old_extract/gzip-1.14/build-aux/config.sub new_workspace/gzip-1.14/build-aux/config.sub
+--- a/build-aux/config.sub	2024-09-08 09:19:08.000000000 -0500
++++ b/build-aux/config.sub	2025-10-13 11:22:07.944254433 -0500
+@@ -2004,6 +2004,7 @@
+ 	| emscripten* \
+ 	| emx* \
+ 	| es* \
++	| ethereal* \
+ 	| fiwix* \
+ 	| freebsd* \
+ 	| fuchsia* \

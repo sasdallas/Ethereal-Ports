@@ -1,0 +1,32 @@
+diff -Naur old_extract/git-2.48.1/config.mak.uname new_workspace/git-2.48.1/config.mak.uname
+--- a/config.mak.uname	2025-01-13 16:18:18.000000000 -0600
++++ b/config.mak.uname	2026-06-28 16:07:49.853786055 -0500
+@@ -4,11 +4,11 @@
+ # Microsoft's Safe Exception Handling in libraries (such as zlib).
+ # Typically required for VS2013+/32-bit compilation on Vista+ versions.
+ 
+-uname_S := $(shell sh -c 'uname -s 2>/dev/null || echo not')
+-uname_M := $(shell sh -c 'uname -m 2>/dev/null || echo not')
+-uname_O := $(shell sh -c 'uname -o 2>/dev/null || echo not')
+-uname_R := $(shell sh -c 'uname -r 2>/dev/null || echo not')
+-uname_V := $(shell sh -c 'uname -v 2>/dev/null || echo not')
++uname_S := not
++uname_M := not
++uname_O := not
++uname_R := not
++uname_V := not
+ 
+ ifneq ($(findstring MINGW,$(uname_S)),)
+ 	uname_S := MINGW
+diff -Naur old_extract/git-2.48.1/configure.ac new_workspace/git-2.48.1/configure.ac
+--- a/configure.ac	2025-01-13 16:18:18.000000000 -0600
++++ b/configure.ac	2026-06-28 16:10:06.299172457 -0500
+@@ -755,7 +755,7 @@
+ # Define NO_GETTEXT if you don't want Git output to be translated.
+ # A translated Git requires GNU libintl or another gettext implementation
+ AC_CHECK_HEADER([libintl.h],
+-[NO_GETTEXT=],
++[NO_GETTEXT=YesPlease],
+ [NO_GETTEXT=YesPlease])
+ GIT_CONF_SUBST([NO_GETTEXT])
+ 

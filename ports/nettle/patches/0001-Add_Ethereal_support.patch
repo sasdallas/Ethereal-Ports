@@ -1,0 +1,11 @@
+diff -Naur old_extract/nettle-3.10.2/config.sub new_workspace/nettle-3.10.2/config.sub
+--- a/config.sub	2025-06-26 13:29:02.000000000 -0500
++++ b/config.sub	2026-06-19 16:18:49.839624495 -0500
+@@ -2006,6 +2006,7 @@
+ 	| es* \
+ 	| fiwix* \
+ 	| freebsd* \
++	| ethereal* \
+ 	| fuchsia* \
+ 	| genix* \
+ 	| genode* \

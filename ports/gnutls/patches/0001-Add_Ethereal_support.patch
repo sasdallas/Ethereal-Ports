@@ -1,0 +1,88 @@
+
+diff -Naur old_extract/gnutls-3.8.10/build-aux/config.sub new_workspace/gnutls-3.8.10/build-aux/config.sub
+--- a/build-aux/config.sub	2025-03-13 02:59:26.000000000 -0500
++++ b/build-aux/config.sub	2026-06-19 16:19:23.045065769 -0500
+@@ -2006,6 +2006,7 @@
+ 	| es* \
+ 	| fiwix* \
+ 	| freebsd* \
++	| ethereal* \
+ 	| fuchsia* \
+ 	| genix* \
+ 	| genode* \
+diff -Naur old_extract/gnutls-3.8.10/configure new_workspace/gnutls-3.8.10/configure
+--- a/configure	2025-07-08 23:37:32.000000000 -0500
++++ b/configure	2026-06-28 17:06:14.923605265 -0500
+@@ -78916,6 +78916,10 @@
+   lt_cv_deplibs_check_method=pass_all
+   ;;
+ 
++ethereal*)
++      lt_cv_deplibs_check_method=pass_all
++      ;;
++
+ hpux10.20* | hpux11*)
+   lt_cv_file_magic_cmd=$FILECMD
+   case $host_cpu in
+@@ -84401,6 +84405,15 @@
+   shlibpath_var=LD_LIBRARY_PATH
+   ;;
+ 
++ethereal*)
++  version_type=linux # correct to gnu/linux during the next big refactor
++  need_lib_prefix=no
++  need_version=no
++  library_names_spec='$libname$release$shared_ext$versuffix $libname$release$shared_ext$major $libname$shared_ext'
++  soname_spec='$libname$release$shared_ext$major'
++  shlibpath_var=LD_LIBRARY_PATH
++  ;;
++
+ freebsd* | dragonfly* | midnightbsd*)
+   # DragonFly does not have aout.  When/if they implement a new
+   # versioning mechanism, adjust this.
+@@ -85047,6 +85060,11 @@
+     lt_cv_dlopen_libs=
+     ;;
+ 
++  ethereal*)
++    lt_cv_dlopen=dlopen
++    lt_cv_dlopen_libs=
++    ;;
++
+   darwin*)
+     # if libdl is installed we need to link against it
+     { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for dlopen in -ldl" >&5
+@@ -85094,7 +85112,7 @@
+ printf "%s\n" "$ac_cv_lib_dl_dlopen" >&6; }
+ if test "x$ac_cv_lib_dl_dlopen" = xyes
+ then :
+-  lt_cv_dlopen=dlopen lt_cv_dlopen_libs=-ldl
++  lt_cv_dlopen=dlopen lt_cv_dlopen_libs=
+ else case e in #(
+   e)
+     lt_cv_dlopen=dyld
+@@ -85217,7 +85235,7 @@
+ printf "%s\n" "$ac_cv_lib_dl_dlopen" >&6; }
+ if test "x$ac_cv_lib_dl_dlopen" = xyes
+ then :
+-  lt_cv_dlopen=dlopen lt_cv_dlopen_libs=-ldl
++  lt_cv_dlopen=dlopen lt_cv_dlopen_libs=
+ else case e in #(
+   e) { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for dlopen in -lsvld" >&5
+ printf %s "checking for dlopen in -lsvld... " >&6; }
+@@ -88454,6 +88472,15 @@
+   version_type=linux # correct to gnu/linux during the next big refactor
+   need_lib_prefix=no
+   need_version=no
++  library_names_spec='$libname$release$shared_ext$versuffix $libname$release$shared_ext$major $libname$shared_ext'
++  soname_spec='$libname$release$shared_ext$major'
++  shlibpath_var=LD_LIBRARY_PATH
++  ;;
++
++ethereal*)
++  version_type=linux # correct to gnu/linux during the next big refactor
++  need_lib_prefix=no
++  need_version=no
+   library_names_spec='$libname$release$shared_ext$versuffix $libname$release$shared_ext$major $libname$shared_ext'
+   soname_spec='$libname$release$shared_ext$major'
+   shlibpath_var=LD_LIBRARY_PATH

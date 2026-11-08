@@ -17,6 +17,8 @@ build() {
 }
 
 install() {
+	mkdir -p $SYSROOT/usr/lib/pkgconfig || true
+	mkdir -p $SYSROOT/usr/include/ || true
     cp -v libbz2.so.$VERSION $SYSROOT/usr/lib/ || exit 1
 	ln -svf libbz2.so.$VERSION $SYSROOT/usr/lib/libbz2.so || exit 1
 	ln -svf libbz2.so.$VERSION $SYSROOT/usr/lib/libbz2.so.1 || exit 1

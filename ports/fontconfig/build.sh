@@ -6,5 +6,5 @@ DEPENDS=("expat")
 # technically this does depend on freetype
 
 configure() {
-    ac_cv_va_copy=yes ./configure --prefix=$PREFIX --sysconfdir=/etc --localstatedir=/var/ --disable-docs --host=$TRIPLET
+    ac_cv_va_copy=yes ./configure --prefix=$PREFIX --sysconfdir=/etc --localstatedir=/var/ --disable-docs --host=$TRIPLET --with-sysroot=$SYSROOT
 }

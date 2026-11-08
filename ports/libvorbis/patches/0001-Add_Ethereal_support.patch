@@ -1,0 +1,42 @@
+diff -Naur old_extract/libvorbis-1.3.7/config.sub new_workspace/libvorbis-1.3.7/config.sub
+--- a/config.sub	2020-07-04 01:20:15.000000000 -0500
++++ b/config.sub	2026-09-18 16:43:00.213820656 -0500
+@@ -1373,7 +1373,7 @@
+ 	      | -clix* | -riscos* | -uniplus* | -iris* | -rtu* | -xenix* \
+ 	      | -hiux* | -knetbsd* | -mirbsd* | -netbsd* \
+ 	      | -bitrig* | -openbsd* | -solidbsd* | -libertybsd* \
+-	      | -ekkobsd* | -kfreebsd* | -freebsd* | -riscix* | -lynxos* \
++	      | -ekkobsd* | -kfreebsd* | ethereal* | -freebsd* | -ethereal* | -riscix* | -lynxos* \
+ 	      | -bosx* | -nextstep* | -cxux* | -aout* | -elf* | -oabi* \
+ 	      | -ptx* | -coff* | -ecoff* | -winnt* | -domain* | -vsta* \
+ 	      | -udi* | -eabi* | -lites* | -ieee* | -go32* | -aux* \
+diff -Naur old_extract/libvorbis-1.3.7/configure new_workspace/libvorbis-1.3.7/configure
+--- a/configure	2020-07-04 01:20:13.000000000 -0500
++++ b/configure	2026-09-18 16:42:58.206474291 -0500
+@@ -5832,6 +5832,10 @@
+   lt_cv_deplibs_check_method=pass_all
+   ;;
+ 
++ethereal*)
++      lt_cv_deplibs_check_method=pass_all
++      ;;
++
+ hpux10.20* | hpux11*)
+   lt_cv_file_magic_cmd=/usr/bin/file
+   case $host_cpu in
+@@ -11231,6 +11235,15 @@
+   version_type=linux # correct to gnu/linux during the next big refactor
+   need_lib_prefix=no
+   need_version=no
++  library_names_spec='$libname$release$shared_ext$versuffix $libname$release$shared_ext$major $libname$shared_ext'
++  soname_spec='$libname$release$shared_ext$major'
++  shlibpath_var=LD_LIBRARY_PATH
++  ;;
++
++ethereal*)
++  version_type=linux # correct to gnu/linux during the next big refactor
++  need_lib_prefix=no
++  need_version=no
+   library_names_spec='$libname$release$shared_ext$versuffix $libname$release$shared_ext$major $libname$shared_ext'
+   soname_spec='$libname$release$shared_ext$major'
+   shlibpath_var=LD_LIBRARY_PATH

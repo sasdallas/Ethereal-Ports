@@ -27,6 +27,6 @@ build() {
 }
 
 install() {
-    # llvm is big
+    # llvm is big, and there is no point in installing it, since it is just used by Mesa
     return
 }

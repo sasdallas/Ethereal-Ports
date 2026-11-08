@@ -1,0 +1,13 @@
+diff --git a/lib/os.h b/lib/os.h
+index 9ded7358..2677b689 100644
+--- a/lib/os.h
++++ b/lib/os.h
+@@ -62,7 +62,7 @@ void *_alloca(size_t size);
+ 
+ #endif /* _V_IFDEFJAIL_H_ */
+ 
+-#ifdef HAVE_ALLOCA_H
++#if defined(HAVE_ALLOCA_H) || defined(__ETHEREAL__)
+ #  include <alloca.h>
+ #endif
+ 

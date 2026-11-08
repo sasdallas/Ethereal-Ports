@@ -5,9 +5,9 @@ if [ $# -lt 2 ]; then
 fi
 
 export SYSROOT=$1
-export ARCH=$2
+export CROSS_ARCH=$2
 
-export TRIPLET=$ARCH-ethereal
+export TRIPLET=$CROSS_ARCH-ethereal
 
 
 export CC=$TRIPLET-gcc

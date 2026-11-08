@@ -1,6 +1,6 @@
 diff -Naur old_extract/SDL2-2.30.11/cmake/sdlchecks.cmake new_workspace/SDL2-2.30.11/cmake/sdlchecks.cmake
 --- a/cmake/sdlchecks.cmake	2024-07-29 09:22:29.000000000 -0500
-+++ b/cmake/sdlchecks.cmake	2026-07-25 11:41:15.639620493 -0500
++++ b/cmake/sdlchecks.cmake	2026-09-14 18:37:40.120062873 -0500
 @@ -981,6 +981,9 @@
        set(PTHREAD_LDFLAGS "-pthread")
      elseif(QNX)
@@ -21,7 +21,7 @@ diff -Naur old_extract/SDL2-2.30.11/cmake/sdlchecks.cmake new_workspace/SDL2-2.3
        list(APPEND EXTRA_CFLAGS ${PTHREAD_CFLAGS})
 diff -Naur old_extract/SDL2-2.30.11/CMakeLists.txt new_workspace/SDL2-2.30.11/CMakeLists.txt
 --- a/CMakeLists.txt	2025-01-01 11:09:38.000000000 -0600
-+++ b/CMakeLists.txt	2026-07-25 12:01:48.175166222 -0500
++++ b/CMakeLists.txt	2026-09-14 18:37:40.120493262 -0500
 @@ -1385,6 +1385,63 @@
      set(HAVE_CLOCK_GETTIME 1)
    endif()
@@ -97,7 +97,7 @@ diff -Naur old_extract/SDL2-2.30.11/CMakeLists.txt new_workspace/SDL2-2.30.11/CM
          set(SDL_AUDIO_DRIVER_SUNAUDIO 1)
 diff -Naur old_extract/SDL2-2.30.11/ETHEREAL_Toolchain.txt new_workspace/SDL2-2.30.11/ETHEREAL_Toolchain.txt
 --- a/ETHEREAL_Toolchain.txt	1969-12-31 18:00:00.000000000 -0600
-+++ b/ETHEREAL_Toolchain.txt	2025-07-05 18:51:50.455409519 -0500
++++ b/ETHEREAL_Toolchain.txt	2026-09-14 18:37:40.120656890 -0500
 @@ -0,0 +1,24 @@
 +if (NOT DEFINED ENV{SYSROOT})
 +	message(FATAL_ERROR "SYSROOT must be defined")
@@ -130,7 +130,7 @@ diff -Naur old_extract/SDL2-2.30.11/.git-hash new_workspace/SDL2-2.30.11/.git-ha
 -fa24d868ac2f8fd558e4e914c9863411245db8fd
 diff -Naur old_extract/SDL2-2.30.11/include/SDL_config.h.cmake new_workspace/SDL2-2.30.11/include/SDL_config.h.cmake
 --- a/include/SDL_config.h.cmake	2025-01-01 09:48:45.000000000 -0600
-+++ b/include/SDL_config.h.cmake	2026-07-13 17:21:15.395500405 -0500
++++ b/include/SDL_config.h.cmake	2026-09-14 18:37:40.120774721 -0500
 @@ -302,6 +302,7 @@
  #cmakedefine SDL_AUDIO_DRIVER_DSOUND @SDL_AUDIO_DRIVER_DSOUND@
  #cmakedefine SDL_AUDIO_DRIVER_DUMMY @SDL_AUDIO_DRIVER_DUMMY@
@@ -149,7 +149,7 @@ diff -Naur old_extract/SDL2-2.30.11/include/SDL_config.h.cmake new_workspace/SDL
  #cmakedefine SDL_VIDEO_DRIVER_KMSDRM_DYNAMIC @SDL_VIDEO_DRIVER_KMSDRM_DYNAMIC@
 diff -Naur old_extract/SDL2-2.30.11/include/SDL_platform.h new_workspace/SDL2-2.30.11/include/SDL_platform.h
 --- a/include/SDL_platform.h	2025-01-01 09:48:45.000000000 -0600
-+++ b/include/SDL_platform.h	2025-09-13 12:13:17.349089991 -0500
++++ b/include/SDL_platform.h	2026-09-14 18:37:40.120900317 -0500
 @@ -36,6 +36,10 @@
  #undef __HAIKU__
  #define __HAIKU__   1
@@ -168,7 +168,7 @@ diff -Naur old_extract/SDL2-2.30.11/REVISION.txt new_workspace/SDL2-2.30.11/REVI
 -release-2.30.11-0-gfa24d868a
 diff -Naur old_extract/SDL2-2.30.11/src/audio/ethereal/SDL_etherealaudio.c new_workspace/SDL2-2.30.11/src/audio/ethereal/SDL_etherealaudio.c
 --- a/src/audio/ethereal/SDL_etherealaudio.c	1969-12-31 18:00:00.000000000 -0600
-+++ b/src/audio/ethereal/SDL_etherealaudio.c	2026-07-14 17:31:51.600780701 -0500
++++ b/src/audio/ethereal/SDL_etherealaudio.c	2026-09-14 18:37:40.121093410 -0500
 @@ -0,0 +1,223 @@
 +#include "../../SDL_internal.h"
 +
@@ -395,7 +395,7 @@ diff -Naur old_extract/SDL2-2.30.11/src/audio/ethereal/SDL_etherealaudio.c new_w
 +#endif
 diff -Naur old_extract/SDL2-2.30.11/src/audio/ethereal/SDL_etherealaudio.h new_workspace/SDL2-2.30.11/src/audio/ethereal/SDL_etherealaudio.h
 --- a/src/audio/ethereal/SDL_etherealaudio.h	1969-12-31 18:00:00.000000000 -0600
-+++ b/src/audio/ethereal/SDL_etherealaudio.h	2026-07-14 16:05:03.336063441 -0500
++++ b/src/audio/ethereal/SDL_etherealaudio.h	2026-09-14 18:37:40.121144737 -0500
 @@ -0,0 +1,24 @@
 +#include "../../SDL_internal.h"
 +
@@ -423,7 +423,7 @@ diff -Naur old_extract/SDL2-2.30.11/src/audio/ethereal/SDL_etherealaudio.h new_w
 +/* vi: set ts=4 sw=4 expandtab: */
 diff -Naur old_extract/SDL2-2.30.11/src/audio/SDL_audio.c new_workspace/SDL2-2.30.11/src/audio/SDL_audio.c
 --- a/src/audio/SDL_audio.c	2025-01-01 09:48:45.000000000 -0600
-+++ b/src/audio/SDL_audio.c	2026-07-25 11:38:22.015588073 -0500
++++ b/src/audio/SDL_audio.c	2026-09-14 18:37:40.121260504 -0500
 @@ -48,6 +48,9 @@
  #ifdef SDL_AUDIO_DRIVER_ALSA
      &ALSA_bootstrap,
@@ -436,7 +436,7 @@ diff -Naur old_extract/SDL2-2.30.11/src/audio/SDL_audio.c new_workspace/SDL2-2.3
  #endif
 diff -Naur old_extract/SDL2-2.30.11/src/audio/SDL_sysaudio.h new_workspace/SDL2-2.30.11/src/audio/SDL_sysaudio.h
 --- a/src/audio/SDL_sysaudio.h	2025-01-01 09:48:45.000000000 -0600
-+++ b/src/audio/SDL_sysaudio.h	2026-07-13 17:23:13.199135924 -0500
++++ b/src/audio/SDL_sysaudio.h	2026-09-14 18:37:40.121448498 -0500
 @@ -184,6 +184,7 @@
  extern AudioBootStrap JACK_bootstrap;
  extern AudioBootStrap SNDIO_bootstrap;
@@ -447,7 +447,7 @@ diff -Naur old_extract/SDL2-2.30.11/src/audio/SDL_sysaudio.h new_workspace/SDL2-
  extern AudioBootStrap SUNAUDIO_bootstrap;
 diff -Naur old_extract/SDL2-2.30.11/src/libm/math_private.h new_workspace/SDL2-2.30.11/src/libm/math_private.h
 --- a/src/libm/math_private.h	2022-10-10 10:50:59.000000000 -0500
-+++ b/src/libm/math_private.h	2025-07-05 18:57:19.190286484 -0500
++++ b/src/libm/math_private.h	2026-09-14 18:37:40.121545640 -0500
 @@ -27,7 +27,7 @@
  #define libm_hidden_def(x)
  #define strong_alias(x, y)
@@ -459,7 +459,7 @@ diff -Naur old_extract/SDL2-2.30.11/src/libm/math_private.h new_workspace/SDL2-2
  
 diff -Naur old_extract/SDL2-2.30.11/src/misc/ethereal/openurl.c new_workspace/SDL2-2.30.11/src/misc/ethereal/openurl.c
 --- a/src/misc/ethereal/openurl.c	1969-12-31 18:00:00.000000000 -0600
-+++ b/src/misc/ethereal/openurl.c	2025-07-05 17:54:06.317806066 -0500
++++ b/src/misc/ethereal/openurl.c	2026-09-14 18:37:40.121663282 -0500
 @@ -0,0 +1,26 @@
 +/*
 +  Simple DirectMedia Layer
@@ -490,7 +490,7 @@ diff -Naur old_extract/SDL2-2.30.11/src/misc/ethereal/openurl.c new_workspace/SD
 \ No newline at end of file
 diff -Naur old_extract/SDL2-2.30.11/src/video/ethereal/SDL_etherealevents.c new_workspace/SDL2-2.30.11/src/video/ethereal/SDL_etherealevents.c
 --- a/src/video/ethereal/SDL_etherealevents.c	1969-12-31 18:00:00.000000000 -0600
-+++ b/src/video/ethereal/SDL_etherealevents.c	2026-07-25 09:59:20.260195945 -0500
++++ b/src/video/ethereal/SDL_etherealevents.c	2026-09-14 18:37:40.121743092 -0500
 @@ -0,0 +1,38 @@
 +/*
 +  Simple DirectMedia Layer
@@ -532,7 +532,7 @@ diff -Naur old_extract/SDL2-2.30.11/src/video/ethereal/SDL_etherealevents.c new_
 +#endif
 diff -Naur old_extract/SDL2-2.30.11/src/video/ethereal/SDL_etherealevents.h new_workspace/SDL2-2.30.11/src/video/ethereal/SDL_etherealevents.h
 --- a/src/video/ethereal/SDL_etherealevents.h	1969-12-31 18:00:00.000000000 -0600
-+++ b/src/video/ethereal/SDL_etherealevents.h	2026-07-25 09:28:15.623475990 -0500
++++ b/src/video/ethereal/SDL_etherealevents.h	2026-09-14 18:37:40.121781724 -0500
 @@ -0,0 +1,32 @@
 +/*
 +  Simple DirectMedia Layer
@@ -568,7 +568,7 @@ diff -Naur old_extract/SDL2-2.30.11/src/video/ethereal/SDL_etherealevents.h new_
 +#endif
 diff -Naur old_extract/SDL2-2.30.11/src/video/ethereal/SDL_etherealframebuffer.c new_workspace/SDL2-2.30.11/src/video/ethereal/SDL_etherealframebuffer.c
 --- a/src/video/ethereal/SDL_etherealframebuffer.c	1969-12-31 18:00:00.000000000 -0600
-+++ b/src/video/ethereal/SDL_etherealframebuffer.c	2026-07-25 10:57:58.004800842 -0500
++++ b/src/video/ethereal/SDL_etherealframebuffer.c	2026-09-14 18:37:40.121840635 -0500
 @@ -0,0 +1,102 @@
 +/*
 +  Simple DirectMedia Layer
@@ -674,7 +674,7 @@ diff -Naur old_extract/SDL2-2.30.11/src/video/ethereal/SDL_etherealframebuffer.c
 +#endif
 diff -Naur old_extract/SDL2-2.30.11/src/video/ethereal/SDL_etherealframebuffer.h new_workspace/SDL2-2.30.11/src/video/ethereal/SDL_etherealframebuffer.h
 --- a/src/video/ethereal/SDL_etherealframebuffer.h	1969-12-31 18:00:00.000000000 -0600
-+++ b/src/video/ethereal/SDL_etherealframebuffer.h	2026-07-25 09:58:16.184154015 -0500
++++ b/src/video/ethereal/SDL_etherealframebuffer.h	2026-09-14 18:37:40.121905858 -0500
 @@ -0,0 +1,33 @@
 +/*
 +  Simple DirectMedia Layer
@@ -711,7 +711,7 @@ diff -Naur old_extract/SDL2-2.30.11/src/video/ethereal/SDL_etherealframebuffer.h
 +#endif
 diff -Naur old_extract/SDL2-2.30.11/src/video/ethereal/SDL_etherealkeyboard.c new_workspace/SDL2-2.30.11/src/video/ethereal/SDL_etherealkeyboard.c
 --- a/src/video/ethereal/SDL_etherealkeyboard.c	1969-12-31 18:00:00.000000000 -0600
-+++ b/src/video/ethereal/SDL_etherealkeyboard.c	2026-07-25 09:57:06.613137558 -0500
++++ b/src/video/ethereal/SDL_etherealkeyboard.c	2026-09-14 18:37:40.121960390 -0500
 @@ -0,0 +1,160 @@
 +/*
 +  Simple DirectMedia Layer
@@ -875,7 +875,7 @@ diff -Naur old_extract/SDL2-2.30.11/src/video/ethereal/SDL_etherealkeyboard.c ne
 +#endif
 diff -Naur old_extract/SDL2-2.30.11/src/video/ethereal/SDL_etherealkeyboard.h new_workspace/SDL2-2.30.11/src/video/ethereal/SDL_etherealkeyboard.h
 --- a/src/video/ethereal/SDL_etherealkeyboard.h	1969-12-31 18:00:00.000000000 -0600
-+++ b/src/video/ethereal/SDL_etherealkeyboard.h	2026-07-25 09:47:48.395304500 -0500
++++ b/src/video/ethereal/SDL_etherealkeyboard.h	2026-09-14 18:37:40.122046712 -0500
 @@ -0,0 +1,32 @@
 +/*
 +  Simple DirectMedia Layer
@@ -911,7 +911,7 @@ diff -Naur old_extract/SDL2-2.30.11/src/video/ethereal/SDL_etherealkeyboard.h ne
 +#endif
 diff -Naur old_extract/SDL2-2.30.11/src/video/ethereal/SDL_etherealmodes.c new_workspace/SDL2-2.30.11/src/video/ethereal/SDL_etherealmodes.c
 --- a/src/video/ethereal/SDL_etherealmodes.c	1969-12-31 18:00:00.000000000 -0600
-+++ b/src/video/ethereal/SDL_etherealmodes.c	2026-07-25 09:13:25.113452672 -0500
++++ b/src/video/ethereal/SDL_etherealmodes.c	2026-09-14 18:37:40.122101105 -0500
 @@ -0,0 +1,66 @@
 +/*
 +  Simple DirectMedia Layer
@@ -981,7 +981,7 @@ diff -Naur old_extract/SDL2-2.30.11/src/video/ethereal/SDL_etherealmodes.c new_w
 +#endif
 diff -Naur old_extract/SDL2-2.30.11/src/video/ethereal/SDL_etherealmodes.h new_workspace/SDL2-2.30.11/src/video/ethereal/SDL_etherealmodes.h
 --- a/src/video/ethereal/SDL_etherealmodes.h	1969-12-31 18:00:00.000000000 -0600
-+++ b/src/video/ethereal/SDL_etherealmodes.h	2026-07-25 09:07:52.551153213 -0500
++++ b/src/video/ethereal/SDL_etherealmodes.h	2026-09-14 18:37:40.122156599 -0500
 @@ -0,0 +1,33 @@
 +/*
 +  Simple DirectMedia Layer
@@ -1018,7 +1018,7 @@ diff -Naur old_extract/SDL2-2.30.11/src/video/ethereal/SDL_etherealmodes.h new_w
 +#endif
 diff -Naur old_extract/SDL2-2.30.11/src/video/ethereal/SDL_etherealmouse.c new_workspace/SDL2-2.30.11/src/video/ethereal/SDL_etherealmouse.c
 --- a/src/video/ethereal/SDL_etherealmouse.c	1969-12-31 18:00:00.000000000 -0600
-+++ b/src/video/ethereal/SDL_etherealmouse.c	2026-07-25 09:57:41.626032876 -0500
++++ b/src/video/ethereal/SDL_etherealmouse.c	2026-09-14 18:37:40.122209819 -0500
 @@ -0,0 +1,72 @@
 +/*
 +  Simple DirectMedia Layer
@@ -1094,7 +1094,7 @@ diff -Naur old_extract/SDL2-2.30.11/src/video/ethereal/SDL_etherealmouse.c new_w
 +#endif
 diff -Naur old_extract/SDL2-2.30.11/src/video/ethereal/SDL_etherealmouse.h new_workspace/SDL2-2.30.11/src/video/ethereal/SDL_etherealmouse.h
 --- a/src/video/ethereal/SDL_etherealmouse.h	1969-12-31 18:00:00.000000000 -0600
-+++ b/src/video/ethereal/SDL_etherealmouse.h	2026-07-25 09:02:01.185214463 -0500
++++ b/src/video/ethereal/SDL_etherealmouse.h	2026-09-14 18:37:40.122266295 -0500
 @@ -0,0 +1,31 @@
 +/*
 +  Simple DirectMedia Layer
@@ -1129,8 +1129,8 @@ diff -Naur old_extract/SDL2-2.30.11/src/video/ethereal/SDL_etherealmouse.h new_w
 +#endif
 diff -Naur old_extract/SDL2-2.30.11/src/video/ethereal/SDL_etherealopengl.c new_workspace/SDL2-2.30.11/src/video/ethereal/SDL_etherealopengl.c
 --- a/src/video/ethereal/SDL_etherealopengl.c	1969-12-31 18:00:00.000000000 -0600
-+++ b/src/video/ethereal/SDL_etherealopengl.c	2026-07-25 13:02:10.423873750 -0500
-@@ -0,0 +1,229 @@
++++ b/src/video/ethereal/SDL_etherealopengl.c	2026-09-16 20:06:39.343043394 -0500
+@@ -0,0 +1,231 @@
 +/*
 +  Simple DirectMedia Layer
 +  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
@@ -1346,8 +1346,10 @@ diff -Naur old_extract/SDL2-2.30.11/src/video/ethereal/SDL_etherealopengl.c new_
 +        return SDL_SetError("OSMesaMakeCurrent encountered an error");
 +    }
 +
++    /* OSMesa's row length is expressed in pixels and is context state, so
++       apply it after making this context current. */
 +    OSMesaPixelStore(OSMESA_Y_UP, 0);
-+    OSMesaPixelStore(OSMESA_ROW_LENGTH, ctx->pitch / 4);
++    OSMesaPixelStore(OSMESA_ROW_LENGTH, ctx->pitch / (ctx->bpp / 8));
 +
 +    wdata->gl_context = context;
 +    return 0;
@@ -1362,7 +1364,7 @@ diff -Naur old_extract/SDL2-2.30.11/src/video/ethereal/SDL_etherealopengl.c new_
 +#endif
 diff -Naur old_extract/SDL2-2.30.11/src/video/ethereal/SDL_etherealopengl.h new_workspace/SDL2-2.30.11/src/video/ethereal/SDL_etherealopengl.h
 --- a/src/video/ethereal/SDL_etherealopengl.h	1969-12-31 18:00:00.000000000 -0600
-+++ b/src/video/ethereal/SDL_etherealopengl.h	2026-07-25 11:09:40.642878575 -0500
++++ b/src/video/ethereal/SDL_etherealopengl.h	2026-09-14 18:37:40.122408683 -0500
 @@ -0,0 +1,49 @@
 +/*
 +  Simple DirectMedia Layer
@@ -1415,7 +1417,7 @@ diff -Naur old_extract/SDL2-2.30.11/src/video/ethereal/SDL_etherealopengl.h new_
 +#endif
 diff -Naur old_extract/SDL2-2.30.11/src/video/ethereal/SDL_etherealvideo.c new_workspace/SDL2-2.30.11/src/video/ethereal/SDL_etherealvideo.c
 --- a/src/video/ethereal/SDL_etherealvideo.c	1969-12-31 18:00:00.000000000 -0600
-+++ b/src/video/ethereal/SDL_etherealvideo.c	2026-07-25 12:12:09.508174471 -0500
++++ b/src/video/ethereal/SDL_etherealvideo.c	2026-09-14 18:37:40.122479185 -0500
 @@ -0,0 +1,103 @@
 +/*
 +  Simple DirectMedia Layer
@@ -1522,8 +1524,8 @@ diff -Naur old_extract/SDL2-2.30.11/src/video/ethereal/SDL_etherealvideo.c new_w
 +#endif
 diff -Naur old_extract/SDL2-2.30.11/src/video/ethereal/SDL_etherealwindow.c new_workspace/SDL2-2.30.11/src/video/ethereal/SDL_etherealwindow.c
 --- a/src/video/ethereal/SDL_etherealwindow.c	1969-12-31 18:00:00.000000000 -0600
-+++ b/src/video/ethereal/SDL_etherealwindow.c	2026-07-25 11:24:38.591998095 -0500
-@@ -0,0 +1,176 @@
++++ b/src/video/ethereal/SDL_etherealwindow.c	2026-09-18 14:11:28.049829742 -0500
+@@ -0,0 +1,187 @@
 +/*
 +  Simple DirectMedia Layer
 +  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
@@ -1551,6 +1553,7 @@ diff -Naur old_extract/SDL2-2.30.11/src/video/ethereal/SDL_etherealwindow.c new_
 +
 +#include "SDL_etherealwindow.h"
 +#include "SDL_etherealkeyboard.h"
++#include "SDL_etherealopengl.h"
 +#include "../../events/SDL_mouse_c.h"
 +#include "../../events/SDL_keyboard_c.h"
 +#include "../../events/SDL_windowevents_c.h"
@@ -1606,6 +1609,16 @@ diff -Naur old_extract/SDL2-2.30.11/src/video/ethereal/SDL_etherealwindow.c new_
 +void ETHEREAL_ResizeHandler(window_t *win, uint32_t event_type, void *event) {
 +    SDL_WindowData *wdata = win->d;
 +    celestial_event_resize_t *resize = event;
++
++#ifdef SDL_VIDEO_OPENGL
++    if (wdata->gl_context != NULL) {
++        SDL_VideoDevice *device = SDL_GetVideoDevice();
++        if (ETHEREAL_GL_MakeCurrent(device, wdata->sdlwindow, wdata->gl_context) < 0) {
++            SDL_LogError(SDL_LOG_CATEGORY_VIDEO, "Failed to rebind OSMesa context after resize: %s", SDL_GetError());
++        }
++    }
++#endif
++
 +    SDL_SendWindowEvent(wdata->sdlwindow, SDL_WINDOWEVENT_RESIZED, resize->new_width, resize->new_height);
 +}
 +
@@ -1702,7 +1715,7 @@ diff -Naur old_extract/SDL2-2.30.11/src/video/ethereal/SDL_etherealwindow.c new_
 +#endif
 diff -Naur old_extract/SDL2-2.30.11/src/video/ethereal/SDL_etherealwindow.h new_workspace/SDL2-2.30.11/src/video/ethereal/SDL_etherealwindow.h
 --- a/src/video/ethereal/SDL_etherealwindow.h	1969-12-31 18:00:00.000000000 -0600
-+++ b/src/video/ethereal/SDL_etherealwindow.h	2026-07-25 11:41:55.483450673 -0500
++++ b/src/video/ethereal/SDL_etherealwindow.h	2026-09-14 18:37:40.122626492 -0500
 @@ -0,0 +1,57 @@
 +/*
 +  Simple DirectMedia Layer
@@ -1763,7 +1776,7 @@ diff -Naur old_extract/SDL2-2.30.11/src/video/ethereal/SDL_etherealwindow.h new_
 +#endif
 diff -Naur old_extract/SDL2-2.30.11/src/video/SDL_surface.c new_workspace/SDL2-2.30.11/src/video/SDL_surface.c
 --- a/src/video/SDL_surface.c	2025-01-01 09:48:45.000000000 -0600
-+++ b/src/video/SDL_surface.c	2026-07-25 11:39:58.765538535 -0500
++++ b/src/video/SDL_surface.c	2026-09-14 18:37:40.122732922 -0500
 @@ -233,8 +233,12 @@
      minimalPitch = SDL_CalculatePitch(format, width, SDL_TRUE);
  
@@ -1792,7 +1805,7 @@ diff -Naur old_extract/SDL2-2.30.11/src/video/SDL_surface.c new_workspace/SDL2-2
      surface = SDL_CreateRGBSurfaceWithFormat(0, 0, 0, depth, format);
 diff -Naur old_extract/SDL2-2.30.11/src/video/SDL_sysvideo.h new_workspace/SDL2-2.30.11/src/video/SDL_sysvideo.h
 --- a/src/video/SDL_sysvideo.h	2025-01-01 09:48:45.000000000 -0600
-+++ b/src/video/SDL_sysvideo.h	2025-07-05 18:30:37.117639342 -0500
++++ b/src/video/SDL_sysvideo.h	2026-09-14 18:37:40.122909534 -0500
 @@ -484,6 +484,7 @@
  extern VideoBootStrap NGAGE_bootstrap;
  extern VideoBootStrap OS2DIVE_bootstrap;
@@ -1803,7 +1816,7 @@ diff -Naur old_extract/SDL2-2.30.11/src/video/SDL_sysvideo.h new_workspace/SDL2-
  extern SDL_bool SDL_OnVideoThread(void);
 diff -Naur old_extract/SDL2-2.30.11/src/video/SDL_video.c new_workspace/SDL2-2.30.11/src/video/SDL_video.c
 --- a/src/video/SDL_video.c	2025-01-01 09:48:45.000000000 -0600
-+++ b/src/video/SDL_video.c	2025-09-14 11:21:35.160664668 -0500
++++ b/src/video/SDL_video.c	2026-09-14 18:37:40.123188699 -0500
 @@ -140,6 +140,9 @@
  #ifdef SDL_VIDEO_DRIVER_NGAGE
      &NGAGE_bootstrap,

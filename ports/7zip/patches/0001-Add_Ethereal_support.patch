@@ -1,0 +1,95 @@
+diff -Naur old_extract/7zip-26.02/CPP/7zip/7zip_gcc.mak new_workspace/7zip-26.02/CPP/7zip/7zip_gcc.mak
+--- a/CPP/7zip/7zip_gcc.mak	2026-06-26 01:00:29.000000000 -0500
++++ b/CPP/7zip/7zip_gcc.mak	2026-09-06 13:09:28.704119738 -0500
+@@ -24,7 +24,7 @@
+ 
+ 
+ ifneq ($(CC), xlc)
+-CFLAGS_WARN_WALL = -Werror -Wall -Wextra
++CFLAGS_WARN_WALL = -Wall -Wextra
+ endif
+ 
+ # for object file
+diff -Naur old_extract/7zip-26.02/CPP/7zip/Common/FileStreams.cpp new_workspace/7zip-26.02/CPP/7zip/Common/FileStreams.cpp
+--- a/CPP/7zip/Common/FileStreams.cpp	2026-06-26 01:00:29.000000000 -0500
++++ b/CPP/7zip/Common/FileStreams.cpp	2026-09-06 13:17:06.384647869 -0500
+@@ -28,6 +28,14 @@
+ #if defined(__APPLE__) || defined(__DragonFly__) || \
+     defined(BSD) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)
+ #include <sys/types.h>
++#elif defined(__ETHEREAL__)
++#include <bits/sysmacros.h>
++
++extern "C" {
++#define major(dev) __mlibc_dev_major(dev)
++#define minor(dev) __mlibc_dev_minor(dev)
++#define makedev(major, minor) __mlibc_dev_makedev(major, minor)
++};
+ #else
+ #include <sys/sysmacros.h>
+ #endif
+diff -Naur old_extract/7zip-26.02/CPP/7zip/UI/Common/UpdateCallback.cpp new_workspace/7zip-26.02/CPP/7zip/UI/Common/UpdateCallback.cpp
+--- a/CPP/7zip/UI/Common/UpdateCallback.cpp	2026-06-26 01:00:29.000000000 -0500
++++ b/CPP/7zip/UI/Common/UpdateCallback.cpp	2026-09-06 13:17:12.888560685 -0500
+@@ -11,6 +11,14 @@
+ #if defined(__APPLE__) || defined(__DragonFly__) || \
+     defined(BSD) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)
+ #include <sys/types.h>
++#elif defined(__ETHEREAL__)
++#include <bits/sysmacros.h>
++
++extern "C" {
++#define major(dev) __mlibc_dev_major(dev)
++#define minor(dev) __mlibc_dev_minor(dev)
++#define makedev(major, minor) __mlibc_dev_makedev(major, minor)
++};
+ #else
+ #include <sys/sysmacros.h>
+ #endif
+diff -Naur old_extract/7zip-26.02/CPP/7zip/UI/Console/Main.cpp new_workspace/7zip-26.02/CPP/7zip/UI/Console/Main.cpp
+--- a/CPP/7zip/UI/Console/Main.cpp	2026-06-26 01:00:29.000000000 -0500
++++ b/CPP/7zip/UI/Console/Main.cpp	2026-09-06 13:17:26.006573840 -0500
+@@ -37,6 +37,7 @@
+ #include <sys/ioctl.h>
+ #include <sys/time.h>
+ #include <sys/times.h>
++#include <termios.h>
+ #endif // _WIN32
+ 
+ #include "../../../../C/CpuArch.h"
+diff -Naur old_extract/7zip-26.02/CPP/7zip/var_gcc.mak new_workspace/7zip-26.02/CPP/7zip/var_gcc.mak
+--- a/CPP/7zip/var_gcc.mak	2026-06-26 01:00:29.000000000 -0500
++++ b/CPP/7zip/var_gcc.mak	2026-09-06 13:11:11.896455585 -0500
+@@ -3,7 +3,7 @@
+ IS_X64=
+ IS_X86=
+ IS_ARM64=
+-CROSS_COMPILE=
++CROSS_COMPILE=x86_64-ethereal-
+ MY_ARCH=
+ USE_ASM=
+ CC=$(CROSS_COMPILE)gcc
+diff -Naur old_extract/7zip-26.02/CPP/7zip/var_gcc_x64.mak new_workspace/7zip-26.02/CPP/7zip/var_gcc_x64.mak
+--- a/CPP/7zip/var_gcc_x64.mak	2026-06-26 01:00:29.000000000 -0500
++++ b/CPP/7zip/var_gcc_x64.mak	2026-09-06 13:11:15.882752794 -0500
+@@ -3,7 +3,7 @@
+ IS_X64=1
+ IS_X86=
+ IS_ARM64=
+-CROSS_COMPILE=
++CROSS_COMPILE=x86_64-ethereal-
+ MY_ARCH=-mavx512f -mavx512vl
+ MY_ARCH=
+ USE_ASM=1
+diff -Naur old_extract/7zip-26.02/CPP/Windows/System.cpp new_workspace/7zip-26.02/CPP/Windows/System.cpp
+--- a/CPP/Windows/System.cpp	2026-06-26 01:00:29.000000000 -0500
++++ b/CPP/Windows/System.cpp	2026-09-06 13:14:25.832644407 -0500
+@@ -358,6 +358,8 @@
+   #elif defined(__FreeBSD_kernel__) && defined(__GLIBC__)
+   // GNU/kFreeBSD Debian
+   // fixme
++  #elif defined(__ETHEREAL__)
++  // fixme
+   #else
+ 
+   struct sysinfo info;

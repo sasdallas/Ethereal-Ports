@@ -1,0 +1,58 @@
+diff --git a/pm_shared/pm_shared.c b/pm_shared/pm_shared.c
+index 2396c9cd..db21a24f 100644
+--- a/pm_shared/pm_shared.c
++++ b/pm_shared/pm_shared.c
+@@ -19,6 +19,11 @@
+ #include <string.h> // strcpy
+ #include <stdlib.h> // atoi
+ #include <ctype.h>  // isspace
++
++#ifdef __ETHEREAL__
++#include <strings.h>
++#endif
++
+ #include "mathlib.h"
+ #if HAVE_TGMATH_H
+ #include <tgmath.h>
+diff --git a/public/build.h b/public/build.h
+index bba120be..6fef4992 100644
+--- a/public/build.h
++++ b/public/build.h
+@@ -82,6 +82,7 @@ Then you can use another oneliner to query all variables:
+ #undef XASH_RISCV_SINGLEFP
+ #undef XASH_RISCV_SOFTFP
+ #undef XASH_SERENITY
++#undef XASH_ETHEREAL
+ #undef XASH_SUNOS
+ #undef XASH_TERMUX
+ #undef XASH_WIN32
+@@ -136,6 +137,8 @@ Then you can use another oneliner to query all variables:
+ 		#define XASH_WASI 1
+ 	#elif defined __sun__
+ 		#define XASH_SUNOS 1
++	#elif defined __ETHEREAL__
++		#define XASH_ETHEREAL 1
+ 	#elif defined __EMSCRIPTEN__
+ 		#define XASH_EMSCRIPTEN 1
+ 	#elif defined __gnu_hurd__
+diff --git a/scripts/waifulib/library_naming.py b/scripts/waifulib/library_naming.py
+index cf950eec..cd71ffbf 100644
+--- a/scripts/waifulib/library_naming.py
++++ b/scripts/waifulib/library_naming.py
+@@ -65,6 +65,7 @@ DEFINES = [
+ 'XASH_WASM',
+ 'XASH_SUNOS',
+ 'XASH_HURD',
++'XASH_ETHEREAL',
+ ]
+ 
+ def configure(conf):
+@@ -112,6 +113,8 @@ def configure(conf):
+ 		buildos = "sunos"
+ 	elif conf.env.XASH_HURD:
+ 		buildos = "hurd"
++	elif conf.env.XASH_ETHEREAL:
++		buildos = "ethereal"
+ 	else:
+ 		conf.fatal("Place your operating system name in build.h and library_naming.py!\n"
+ 			"If this is a mistake, try to fix conditions above and report a bug")

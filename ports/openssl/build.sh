@@ -20,7 +20,6 @@ install() {
     # create the SSL links
     # Thank you again Banan!
     rm -f "$SYSROOT/etc/ssl/certs"/*
-
     ln -svf "/etc/cacert/extracted/cacert.pem" "$SYSROOT/etc/ssl/cert.pem"
     ln -svf "/etc/cacert/extracted/cacert.pem" "$SYSROOT/etc/ssl/certs/ca-certificates.crt"
     ln -svf "/etc/cacert/extracted/cacert.pem" "$SYSROOT/etc/ssl/certs/ca-bundle.crt"

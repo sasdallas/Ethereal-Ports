@@ -1,20 +1,52 @@
 diff -Naur old_extract/libdrm-2.4.122/include/drm/drm.h new_workspace/libdrm-2.4.122/include/drm/drm.h
 --- a/include/drm/drm.h	2024-06-26 03:13:31.000000000 -0500
-+++ b/include/drm/drm.h	2026-06-20 10:35:30.415046839 -0500
-@@ -44,7 +44,11 @@
++++ b/include/drm/drm.h	2026-09-18 15:22:11.805977441 -0500
+@@ -44,7 +44,43 @@
  #else /* One of the BSDs */
  
  #include <stdint.h>
 -#include <sys/ioccom.h>
 +
 +#ifdef __ETHEREAL__
-+#include <asm/ioctl.h>
++#define _IOC_NRBITS 8
++#define _IOC_TYPEBITS 8
++#define _IOC_SIZEBITS 14
++#define _IOC_DIRBITS 2
++#define _IOC_NONE 0U
++#define _IOC_WRITE 1U
++#define _IOC_READ 2U
++#define _IOC_NRMASK        ((1 << _IOC_NRBITS)-1)
++#define _IOC_TYPEMASK        ((1 << _IOC_TYPEBITS)-1)
++#define _IOC_SIZEMASK        ((1 << _IOC_SIZEBITS)-1)
++#define _IOC_DIRMASK        ((1 << _IOC_DIRBITS)-1)
++#define _IOC_NRSHIFT        0
++#define _IOC_TYPESHIFT        (_IOC_NRSHIFT+_IOC_NRBITS)
++#define _IOC_SIZESHIFT        (_IOC_TYPESHIFT+_IOC_TYPEBITS)
++#define _IOC_DIRSHIFT        (_IOC_SIZESHIFT+_IOC_SIZEBITS)
++#define _IOC(dir,type,nr,size) (((dir)  << 30) | ((type) << 8) | ((nr)   << 0) | ((size) << 16))
++#define _IO(type,nr)          _IOC(0U, (type), (nr), 0)
++#define _IOR(type,nr,size)     _IOC(2U, (type), (nr), sizeof(size))
++#define _IOW(type,nr,size)     _IOC(1U, (type), (nr), sizeof(size))
++#define _IOWR(type,nr,size)    _IOC(3U, (type), (nr), sizeof(size))
++#define _IOR_BAD(type,nr,size)        _IOC(_IOC_READ,(type),(nr),sizeof(size))
++#define _IOW_BAD(type,nr,size)        _IOC(_IOC_WRITE,(type),(nr),sizeof(size))
++#define _IOWR_BAD(type,nr,size)        _IOC(_IOC_READ|_IOC_WRITE,(type),(nr),sizeof(size))
++#define _IOC_DIR(nr)                (((nr) >> _IOC_DIRSHIFT) & _IOC_DIRMASK)
++#define _IOC_TYPE(nr)                (((nr) >> _IOC_TYPESHIFT) & _IOC_TYPEMASK)
++#define _IOC_NR(nr)                (((nr) >> _IOC_NRSHIFT) & _IOC_NRMASK)
++#define _IOC_SIZE(nr)                (((nr) >> _IOC_SIZESHIFT) & _IOC_SIZEMASK)
++
++#define IOC_IN                (_IOC_WRITE << _IOC_DIRSHIFT)
++#define IOC_OUT                (_IOC_READ << _IOC_DIRSHIFT)
++#define IOC_INOUT        ((_IOC_WRITE|_IOC_READ) << _IOC_DIRSHIFT)
++#define IOCSIZE_MASK        (_IOC_SIZEMASK << _IOC_SIZESHIFT)
++#define IOCSIZE_SHIFT        (_IOC_SIZESHIFT)
 +#endif
 +
  #include <sys/types.h>
  typedef int8_t   __s8;
  typedef uint8_t  __u8;
-@@ -57,6 +61,7 @@
+@@ -57,6 +93,7 @@
  typedef size_t   __kernel_size_t;
  typedef unsigned long drm_handle_t;
  
@@ -24,14 +56,23 @@ diff -Naur old_extract/libdrm-2.4.122/include/drm/drm.h new_workspace/libdrm-2.4
  #if defined(__cplusplus)
 diff -Naur old_extract/libdrm-2.4.122/xf86drm.c new_workspace/libdrm-2.4.122/xf86drm.c
 --- a/xf86drm.c	2024-06-26 03:13:31.000000000 -0500
-+++ b/xf86drm.c	2026-06-20 10:09:38.963462423 -0500
-@@ -54,9 +54,11 @@
++++ b/xf86drm.c	2026-09-18 15:20:16.345976500 -0500
+@@ -54,9 +54,20 @@
  #ifdef MAJOR_IN_MKDEV
  #include <sys/mkdev.h>
  #endif
 -#ifdef MAJOR_IN_SYSMACROS
 +
-+#if defined(MAJOR_IN_SYSMACROS) || defined(__ETHEREAL__)
++#ifdef __ETHEREAL__
++#include <bits/sysmacros.h>
++
++
++#define major(dev) __mlibc_dev_major(dev)
++#define minor(dev) __mlibc_dev_minor(dev)
++#define makedev(major, minor) __mlibc_dev_makedev(major, minor)
++#endif
++
++#if defined(MAJOR_IN_SYSMACROS)
  #include <sys/sysmacros.h>
  #endif
 +
@@ -40,7 +81,7 @@ diff -Naur old_extract/libdrm-2.4.122/xf86drm.c new_workspace/libdrm-2.4.122/xf8
  #endif
 diff -Naur old_extract/libdrm-2.4.122/xf86drm.h new_workspace/libdrm-2.4.122/xf86drm.h
 --- a/xf86drm.h	2024-06-26 03:13:31.000000000 -0500
-+++ b/xf86drm.h	2026-06-20 10:04:30.262925564 -0500
++++ b/xf86drm.h	2026-09-18 15:20:16.346176175 -0500
 @@ -58,7 +58,10 @@
  
  #else /* One of the *BSDs */

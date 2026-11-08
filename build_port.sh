@@ -267,7 +267,19 @@ fetch() {
 
 		if ! [ -f $archive ] || [ $FORCE -gt 0 ]; then
 			rm $archive || true
-			wget $TARBALL_URL
+			if [[ "$TARBALL_URL" == *"ftpmirror.gnu.org"* ]]; then
+				# try primary mirror
+				if ! wget "$TARBALL_URL"; then
+					warn "Failed to download from ftpmirror.gnu.org, trying a different URL pattern..."
+        			FALLBACK_URL="${TARBALL_URL/\/gnu\///}"
+					if ! wget "$FALLBACK_URL"; then
+						error "Failed to download $NAME"
+						exit 1
+					fi
+				fi
+			else
+				wget $TARBALL_URL
+			fi
 		fi
 
 		tar -xf "$archive"

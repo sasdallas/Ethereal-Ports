@@ -10,6 +10,7 @@ NAME="mesa"
 VERSION="25.0.7"
 TARBALL_URL="https://archive.mesa3d.org/mesa-$VERSION.tar.xz"
 DEPENDS=("llvm")
+RUNTIME_DEPENDS=()
 BUILD_DIR="mesa-25.0.7"
 
 LLVM_VERSION="20.1.8"

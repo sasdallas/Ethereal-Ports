@@ -1,0 +1,687 @@
+diff -Naur old_extract/wine-10.0/configure new_workspace/wine-10.0/configure
+--- a/configure	2025-01-21 10:42:16.000000000 -0600
++++ b/configure	2026-08-30 13:37:29.223817551 -0500
+@@ -7891,12 +7891,12 @@
+   printf "%s\n" "#define HAVE_SYS_CDIO_H 1" >>confdefs.h
+ 
+ fi
+-ac_fn_c_check_header_compile "$LINENO" "sys/epoll.h" "ac_cv_header_sys_epoll_h" "$ac_includes_default"
+-if test "x$ac_cv_header_sys_epoll_h" = xyes
+-then :
+-  printf "%s\n" "#define HAVE_SYS_EPOLL_H 1" >>confdefs.h
+-
+-fi
++#ac_fn_c_check_header_compile "$LINENO" "sys/epoll.h" "ac_cv_header_sys_epoll_h" "$ac_includes_default"
++#if test "x$ac_cv_header_sys_epoll_h" = xyes
++#then :
++ # printf "%s\n" "#define HAVE_SYS_EPOLL_H 1" >>confdefs.h
++#
++#fi
+ ac_fn_c_check_header_compile "$LINENO" "sys/event.h" "ac_cv_header_sys_event_h" "$ac_includes_default"
+ if test "x$ac_cv_header_sys_event_h" = xyes
+ then :
+@@ -8059,12 +8059,12 @@
+   printf "%s\n" "#define HAVE_SYS_VNODE_H 1" >>confdefs.h
+ 
+ fi
+-ac_fn_c_check_header_compile "$LINENO" "sys/xattr.h" "ac_cv_header_sys_xattr_h" "$ac_includes_default"
+-if test "x$ac_cv_header_sys_xattr_h" = xyes
+-then :
+-  printf "%s\n" "#define HAVE_SYS_XATTR_H 1" >>confdefs.h
++#ac_fn_c_check_header_compile "$LINENO" "sys/xattr.h" "ac_cv_header_sys_xattr_h" "$ac_includes_default"
++#if test "x$ac_cv_header_sys_xattr_h" = xyes
++#then :
++#  printf "%s\n" "#define HAVE_SYS_XATTR_H 1" >>confdefs.h
+ 
+-fi
++#fi
+ ac_fn_c_check_header_compile "$LINENO" "syscall.h" "ac_cv_header_syscall_h" "$ac_includes_default"
+ if test "x$ac_cv_header_syscall_h" = xyes
+ then :
+@@ -9929,6 +9929,74 @@
+     WINEPRELOADER_LDFLAGS="-nostartfiles -nodefaultlibs"
+ 
+     case $host_os in
++          ethereal*)
++        case $HOST_ARCH in
++          i386|arm)
++            { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether the compiler supports -Wl,-Ttext-segment=0x60000000" >&5
++printf %s "checking whether the compiler supports -Wl,-Ttext-segment=0x60000000... " >&6; }
++if test ${ac_cv_cflags__Wl__Ttext_segment_0x60000000+y}
++then :
++  printf %s "(cached) " >&6
++else case e in #(
++  e) ac_wine_try_cflags_saved=$CFLAGS
++CFLAGS="$CFLAGS -Wl,-Ttext-segment=0x60000000"
++cat confdefs.h - <<_ACEOF >conftest.$ac_ext
++/* end confdefs.h.  */
++int main(int argc, char **argv) { return 0; }
++_ACEOF
++if ac_fn_c_try_link "$LINENO"
++then :
++  ac_cv_cflags__Wl__Ttext_segment_0x60000000=yes
++else case e in #(
++  e) ac_cv_cflags__Wl__Ttext_segment_0x60000000=no ;;
++esac
++fi
++rm -f core conftest.err conftest.$ac_objext conftest.beam \
++    conftest$ac_exeext conftest.$ac_ext
++CFLAGS=$ac_wine_try_cflags_saved ;;
++esac
++fi
++{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_cv_cflags__Wl__Ttext_segment_0x60000000" >&5
++printf "%s\n" "$ac_cv_cflags__Wl__Ttext_segment_0x60000000" >&6; }
++if test "x$ac_cv_cflags__Wl__Ttext_segment_0x60000000" = xyes
++then :
++  as_fn_append WINELOADER_LDFLAGS " -Wl,-Ttext-segment=0x60000000"
++else case e in #(
++  e) { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether the compiler supports -Wl,--section-start,.interp=0x60000400" >&5
++printf %s "checking whether the compiler supports -Wl,--section-start,.interp=0x60000400... " >&6; }
++if test ${ac_cv_cflags__Wl___section_start__interp_0x60000400+y}
++then :
++  printf %s "(cached) " >&6
++else case e in #(
++  e) ac_wine_try_cflags_saved=$CFLAGS
++CFLAGS="$CFLAGS -Wl,--section-start,.interp=0x60000400"
++cat confdefs.h - <<_ACEOF >conftest.$ac_ext
++/* end confdefs.h.  */
++int main(int argc, char **argv) { return 0; }
++_ACEOF
++if ac_fn_c_try_link "$LINENO"
++then :
++  ac_cv_cflags__Wl___section_start__interp_0x60000400=yes
++else case e in #(
++  e) ac_cv_cflags__Wl___section_start__interp_0x60000400=no ;;
++esac
++fi
++rm -f core conftest.err conftest.$ac_objext conftest.beam \
++    conftest$ac_exeext conftest.$ac_ext
++CFLAGS=$ac_wine_try_cflags_saved ;;
++esac
++fi
++{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_cv_cflags__Wl___section_start__interp_0x60000400" >&5
++printf "%s\n" "$ac_cv_cflags__Wl___section_start__interp_0x60000400" >&6; }
++if test "x$ac_cv_cflags__Wl___section_start__interp_0x60000400" = xyes
++then :
++  as_fn_append WINELOADER_LDFLAGS " -Wl,--section-start,.interp=0x60000400"
++fi ;;
++esac
++fi
++            ;;
++        esac
++        ;;
+       linux*)
+         as_fn_append WINELOADER_LDFLAGS " -pie"
+         case $HOST_ARCH in
+@@ -21003,12 +21071,12 @@
+   printf "%s\n" "#define HAVE_DLINFO 1" >>confdefs.h
+ 
+ fi
+-ac_fn_c_check_func "$LINENO" "epoll_create" "ac_cv_func_epoll_create"
+-if test "x$ac_cv_func_epoll_create" = xyes
+-then :
+-  printf "%s\n" "#define HAVE_EPOLL_CREATE 1" >>confdefs.h
+-
+-fi
++#ac_fn_c_check_func "$LINENO" "epoll_create" "ac_cv_func_epoll_create"
++#if test "x$ac_cv_func_epoll_create" = xyes
++#then :
++#  printf "%s\n" "#define HAVE_EPOLL_CREATE 1" >>confdefs.h
++#
++#fi
+ ac_fn_c_check_func "$LINENO" "fstatfs" "ac_cv_func_fstatfs"
+ if test "x$ac_cv_func_fstatfs" = xyes
+ then :
+diff -Naur old_extract/wine-10.0/dlls/nsiproxy.sys/ip.c new_workspace/wine-10.0/dlls/nsiproxy.sys/ip.c
+--- a/dlls/nsiproxy.sys/ip.c	2025-01-21 10:42:16.000000000 -0600
++++ b/dlls/nsiproxy.sys/ip.c	2026-08-30 13:33:27.558745651 -0500
+@@ -59,6 +59,30 @@
+ #include <netinet6/ip6_var.h>
+ #endif
+ 
++#ifdef __ETHEREAL__
++#include <errno.h>
++struct ifaddrs {
++               struct ifaddrs  *ifa_next;    /* Next item in list */
++               char            *ifa_name;    /* Name of interface */
++               unsigned int     ifa_flags;   /* Flags from SIOCGIFFLAGS */
++               struct sockaddr *ifa_addr;    /* Address of interface */
++               struct sockaddr *ifa_netmask; /* Netmask of interface */
++               union {
++                   struct sockaddr *ifu_broadaddr;
++                                    /* Broadcast address of interface */
++                   struct sockaddr *ifu_dstaddr;
++                                    /* Point-to-point destination address */
++               } ifa_ifu;
++           #define              ifa_broadaddr ifa_ifu.ifu_broadaddr
++           #define              ifa_dstaddr   ifa_ifu.ifu_dstaddr
++               void            *ifa_data;    /* Address-specific data */
++           };
++
++
++       static int getifaddrs(struct ifaddrs **ifap) { return -ENOSYS; }
++       static void freeifaddrs(struct ifaddrs *ifa) { }
++#endif
++
+ #ifdef __APPLE__
+ /* For reasons unknown, Mac OS doesn't export <netinet6/ip6_var.h> to user-
+  * space. We'll have to define the needed struct ourselves.
+diff -Naur old_extract/wine-10.0/dlls/nsiproxy.sys/ndis.c new_workspace/wine-10.0/dlls/nsiproxy.sys/ndis.c
+--- a/dlls/nsiproxy.sys/ndis.c	2025-01-21 10:42:16.000000000 -0600
++++ b/dlls/nsiproxy.sys/ndis.c	2026-08-30 13:32:20.924559959 -0500
+@@ -261,6 +261,10 @@
+     free( buf );
+     return STATUS_SUCCESS;
+ }
++#elif defined(__ETHEREAL__)
++static NTSTATUS if_get_physical( const char *name, UINT *type, IF_PHYSICAL_ADDRESS *phys_addr ) {
++    return STATUS_NOT_IMPLEMENTED;
++}
+ #endif
+ 
+ static WCHAR *strdupAtoW( const char *str )
+diff -Naur old_extract/wine-10.0/dlls/ntdll/loader.c new_workspace/wine-10.0/dlls/ntdll/loader.c
+--- a/dlls/ntdll/loader.c	2025-01-21 10:42:16.000000000 -0600
++++ b/dlls/ntdll/loader.c	2026-08-30 18:09:09.041787403 -0500
+@@ -3783,7 +3783,20 @@
+     }
+     if (!nts)
+     {
++        void *protect_base = &pIAT[id];
++        SIZE_T protect_size = sizeof(pIAT[id]);
++        ULONG protect_old;
++
++        /* The delay IAT may share the read-only .idata section.  Normal
++         * imports are explicitly unprotected by fixup_import_dll(), but a
++         * delayed import is fixed up after the section protections have been
++         * restored. */
++        nts = NtProtectVirtualMemory( NtCurrentProcess(), &protect_base,
++                                      &protect_size, PAGE_READWRITE, &protect_old );
++        if (nts) goto fail;
+         pIAT[id].u1.Function = (ULONG_PTR)fp;
++        NtProtectVirtualMemory( NtCurrentProcess(), &protect_base,
++                                &protect_size, protect_old, &protect_old );
+         return fp;
+     }
+ 
+diff -Naur old_extract/wine-10.0/dlls/ntdll/unix/debug.c new_workspace/wine-10.0/dlls/ntdll/unix/debug.c
+--- a/dlls/ntdll/unix/debug.c	2025-01-21 10:42:16.000000000 -0600
++++ b/dlls/ntdll/unix/debug.c	2026-06-29 12:20:55.367209624 -0500
+@@ -357,6 +357,10 @@
+ {
+     struct __wine_debug_channel *options, default_option = { default_flags };
+ 
++#ifdef __ETHEREAL__
++    fflush(stdout);
++#endif
++
+     setbuf( stdout, NULL );
+     setbuf( stderr, NULL );
+ 
+diff -Naur old_extract/wine-10.0/dlls/ntdll/unix/env.c new_workspace/wine-10.0/dlls/ntdll/unix/env.c
+--- a/dlls/ntdll/unix/env.c	2025-01-21 10:42:16.000000000 -0600
++++ b/dlls/ntdll/unix/env.c	2026-08-30 13:25:09.735443683 -0500
+@@ -35,6 +35,7 @@
+ #include <sys/ioctl.h>
+ #include <sys/stat.h>
+ #include <unistd.h>
++#include <termios.h>
+ #ifdef HAVE_SYS_PRCTL_H
+ # include <sys/prctl.h>
+ #endif
+diff -Naur old_extract/wine-10.0/dlls/ntdll/unix/file.c new_workspace/wine-10.0/dlls/ntdll/unix/file.c
+--- a/dlls/ntdll/unix/file.c	2025-01-21 10:42:16.000000000 -0600
++++ b/dlls/ntdll/unix/file.c	2026-05-04 13:30:43.978703042 -0500
+@@ -1298,12 +1298,14 @@
+     {
+         sens = FALSE;
+     }
++#ifndef __ETHEREAL__
+     else if (fstatfs( fd, &stfs ) == 0 &&                          /* CIOPFS is case insensitive.  Instead of */
+              stfs.f_type == 0x65735546 /* FUSE_SUPER_MAGIC */ &&   /* parsing mtab to discover if the FUSE FS */
+              fstatat( fd, ".ciopfs", &st, AT_NO_AUTOMOUNT ) == 0)  /* is CIOPFS, look for .ciopfs in the dir. */
+     {
+         sens = FALSE;
+     }
++#endif
+ 
+     close( fd );
+     return sens;
+@@ -6921,6 +6923,7 @@
+         if (!get_mountmgr_fs_info( handle, fd, &drive, sizeof(drive) )) fs_type = drive.fs_type;
+         else
+         {
++#ifndef __ETHEREAL__
+             struct statfs stfs;
+ 
+             if (!fstatfs( fd, &stfs ))
+@@ -6949,6 +6952,8 @@
+                     fs_type = MOUNTMGR_FS_TYPE_FAT32;
+ #endif
+             }
++#endif
++
+         }
+ 
+         switch (fs_type)
+diff -Naur old_extract/wine-10.0/dlls/ntdll/unix/serial.c new_workspace/wine-10.0/dlls/ntdll/unix/serial.c
+--- a/dlls/ntdll/unix/serial.c	2025-01-21 10:42:16.000000000 -0600
++++ b/dlls/ntdll/unix/serial.c	2026-08-30 13:25:28.511987247 -0500
+@@ -26,6 +26,7 @@
+ 
+ #include "config.h"
+ 
++#include <asm/ioctls.h>
+ #include <errno.h>
+ #include <string.h>
+ #include <stdlib.h>
+diff -Naur old_extract/wine-10.0/dlls/ntdll/unix/server.c new_workspace/wine-10.0/dlls/ntdll/unix/server.c
+--- a/dlls/ntdll/unix/server.c	2025-01-21 10:42:16.000000000 -0600
++++ b/dlls/ntdll/unix/server.c	2026-08-30 20:15:21.312509909 -0500
+@@ -205,7 +205,7 @@
+             req->u.req.request_header.request_size + sizeof(req->u.req)) return STATUS_SUCCESS;
+     }
+ 
+-    if (ret >= 0) server_protocol_error( "partial write %d\n", ret );
++    if (ret >= 0) server_protocol_error( "partial write %d (expected %d)\n", ret, req->u.req.request_header.request_size + sizeof(req->u.req) );
+     if (errno == EPIPE) abort_thread(0);
+     if (errno == EFAULT) return STATUS_ACCESS_VIOLATION;
+     server_protocol_perror( "write" );
+@@ -919,7 +919,7 @@
+     for (;;)
+     {
+         if ((ret = sendmsg( fd_socket, &msghdr, 0 )) == sizeof(data)) return;
+-        if (ret >= 0) server_protocol_error( "partial write %d\n", ret );
++        if (ret >= 0) server_protocol_error( "partial write %d (needed %d)\n", ret, sizeof(data) );
+         if (errno == EINTR) continue;
+         if (errno == EPIPE) abort_thread(0);
+         server_protocol_perror( "sendmsg" );
+@@ -1365,7 +1365,7 @@
+     /* make sure we are at the right place */
+     if (stat( ".", &st ) == -1) fatal_perror( "stat %s", server_dir );
+     if (st.st_uid != getuid()) fatal_error( "'%s' is not owned by you\n", server_dir );
+-    if (st.st_mode & 077) fatal_error( "'%s' must not be accessible by other users\n", server_dir );
++    // if (st.st_mode & 077) fatal_error( "'%s' must not be accessible by other users\n", server_dir );
+ 
+     for (retry = 0; retry < 6; retry++)
+     {
+@@ -1384,11 +1384,14 @@
+         }
+ 
+         /* make sure the socket is sane (ISFIFO needed for Solaris) */
++    #ifndef __ETHEREAL__
+         if (!S_ISSOCK(st.st_mode) && !S_ISFIFO(st.st_mode))
+             fatal_error( "'%s/%s' is not a socket\n", server_dir, SOCKETNAME );
+         if (st.st_uid != getuid())
+             fatal_error( "'%s/%s' is not owned by you\n", server_dir, SOCKETNAME );
++    #endif
+ 
++    
+         /* try to connect to it */
+         addr.sun_family = AF_UNIX;
+         strcpy( addr.sun_path, SOCKETNAME );
+diff -Naur old_extract/wine-10.0/dlls/ntdll/unix/signal_arm.c new_workspace/wine-10.0/dlls/ntdll/unix/signal_arm.c
+--- a/dlls/ntdll/unix/signal_arm.c	2025-01-21 10:42:16.000000000 -0600
++++ b/dlls/ntdll/unix/signal_arm.c	2026-08-30 15:15:44.916111248 -0500
+@@ -1181,7 +1181,7 @@
+ /***********************************************************************
+  *           __wine_syscall_dispatcher
+  */
+-__ASM_GLOBAL_FUNC( __wine_syscall_dispatcher,
++__ASM_GLOBAL_FUNC( ,
+                    __ASM_EHABI(".cantunwind\n\t")
+                    "mrc p15, 0, r2, c13, c0, 2\n\t" /* NtCurrentTeb() */
+                    "ldr r1, [r2, #0x1d8]\n\t"       /* arm_thread_data()->syscall_frame */
+diff -Naur old_extract/wine-10.0/dlls/ntdll/unix/signal_x86_64.c new_workspace/wine-10.0/dlls/ntdll/unix/signal_x86_64.c
+--- a/dlls/ntdll/unix/signal_x86_64.c	2025-01-21 10:42:16.000000000 -0600
++++ b/dlls/ntdll/unix/signal_x86_64.c	2026-08-30 16:07:34.834325951 -0500
+@@ -65,6 +65,10 @@
+ # include <mach/mach.h>
+ #endif
+ 
++#ifdef __ETHEREAL__
++#include <sys/syscall.h>
++#endif
++
+ #include "ntstatus.h"
+ #define WIN32_NO_STATUS
+ #include "windef.h"
+@@ -292,6 +296,38 @@
+ 
+ #define XState_sig(context)  NULL
+ 
++#elif defined(__ETHEREAL__)
++
++#ifndef FP_XSTATE_MAGIC1
++#define FP_XSTATE_MAGIC1 0x46505853
++#endif
++
++#define RAX_sig(context)     ((context)->uc_mcontext.gregs[REG_RAX])
++#define RBX_sig(context)     ((context)->uc_mcontext.gregs[REG_RBX])
++#define RCX_sig(context)     ((context)->uc_mcontext.gregs[REG_RCX])
++#define RDX_sig(context)     ((context)->uc_mcontext.gregs[REG_RDX])
++#define RSI_sig(context)     ((context)->uc_mcontext.gregs[REG_RSI])
++#define RDI_sig(context)     ((context)->uc_mcontext.gregs[REG_RDI])
++#define RBP_sig(context)     ((context)->uc_mcontext.gregs[REG_RBP])
++#define R8_sig(context)      ((context)->uc_mcontext.gregs[REG_R8])
++#define R9_sig(context)      ((context)->uc_mcontext.gregs[REG_R9])
++#define R10_sig(context)     ((context)->uc_mcontext.gregs[REG_R10])
++#define R11_sig(context)     ((context)->uc_mcontext.gregs[REG_R11])
++#define R12_sig(context)     ((context)->uc_mcontext.gregs[REG_R12])
++#define R13_sig(context)     ((context)->uc_mcontext.gregs[REG_R13])
++#define R14_sig(context)     ((context)->uc_mcontext.gregs[REG_R14])
++#define R15_sig(context)     ((context)->uc_mcontext.gregs[REG_R15])
++#define CS_sig(context)      (*((WORD *)&(context)->uc_mcontext.gregs[REG_CSGSFS] + 0))
++#define GS_sig(context)      (*((WORD *)&(context)->uc_mcontext.gregs[REG_CSGSFS] + 1))
++#define FS_sig(context)      (*((WORD *)&(context)->uc_mcontext.gregs[REG_CSGSFS] + 2))
++#define RSP_sig(context)     ((context)->uc_mcontext.gregs[REG_RSP])
++#define RIP_sig(context)     ((context)->uc_mcontext.gregs[REG_RIP])
++#define EFL_sig(context)     ((context)->uc_mcontext.gregs[REG_EFL])
++#define TRAP_sig(context)    ((context)->uc_mcontext.gregs[REG_TRAPNO])
++#define ERROR_sig(context)   ((context)->uc_mcontext.gregs[REG_ERR])
++#define FPU_sig(context)     ((XMM_SAVE_AREA32 *)((context)->uc_mcontext.fpregs))
++#define XState_sig(fpu)      (((unsigned int *)fpu->Reserved4)[12] == FP_XSTATE_MAGIC1 ? (XSAVE_AREA_HEADER *)(fpu + 1) : NULL)
++
+ #else
+ #error You must define the signal context functions for your platform
+ #endif
+@@ -2604,6 +2640,12 @@
+        thread's gsbase.  Have each thread record its gsbase pointer into its
+        TEB so alloc_tls_slot() can find it. */
+     teb->Instrumentation[0] = thread_data->pthread_teb;
++#elif defined(__ETHEREAL__)
++    /* mlibc keeps its TLS (errno, this_tid, the stack canary) in FS, so leave FS alone
++       and put the TEB in GS where NtCurrentTeb() expects it. Save the libc thread
++       pointer first - fs:0 is the TCB self pointer. */
++    __asm__ __volatile__( "movq %%fs:0,%0" : "=r" (thread_data->pthread_teb) );
++    SYSCALL1(SYS_SETGSBASE, teb);
+ #else
+ # error Please define setting %gs for your architecture
+ #endif
+diff -Naur old_extract/wine-10.0/dlls/ntdll/unix/socket.c new_workspace/wine-10.0/dlls/ntdll/unix/socket.c
+--- a/dlls/ntdll/unix/socket.c	2025-01-21 10:42:16.000000000 -0600
++++ b/dlls/ntdll/unix/socket.c	2026-08-30 13:27:40.066813024 -0500
+@@ -1833,11 +1833,14 @@
+             }
+             else
+             {
++#ifndef __ETHEREAL__
+                 if (ioctl( fd, SIOCATMARK, &value ) < 0)
+                 {
+                     status = sock_errno_to_status( errno );
+                     break;
+                 }
++#else
++#endif
+                 /* windows is reversed with respect to unix */
+                 *(int *)out_buffer = !value;
+             }
+diff -Naur old_extract/wine-10.0/dlls/ntdll/unix/tape.c new_workspace/wine-10.0/dlls/ntdll/unix/tape.c
+--- a/dlls/ntdll/unix/tape.c	2025-01-21 10:42:16.000000000 -0600
++++ b/dlls/ntdll/unix/tape.c	2026-05-04 13:28:40.320091566 -0500
+@@ -34,6 +34,8 @@
+ #include <sys/ioctl.h>
+ #ifdef HAVE_SYS_MTIO_H
+ #include <sys/mtio.h>
++#else
++#error error
+ #endif
+ 
+ #if !defined(MTCOMPRESSION) && defined(MTCOMP)
+@@ -104,7 +106,7 @@
+  */
+ static NTSTATUS TAPE_CreatePartition( int fd, const TAPE_CREATE_PARTITION *data )
+ {
+-#ifdef HAVE_SYS_MTIO_H
++#if defined(HAVE_SYS_MTIO_H) && !defined(__ETHEREAL__)
+     struct mtop cmd;
+ 
+     TRACE( "fd: %d method: 0x%08x count: 0x%08x size: 0x%08x\n",
+@@ -146,7 +148,7 @@
+  */
+ static NTSTATUS TAPE_Erase( int fd, const TAPE_ERASE *data )
+ {
+-#ifdef HAVE_SYS_MTIO_H
++#if defined(HAVE_SYS_MTIO_H) && !defined(__ETHEREAL__)
+     struct mtop cmd;
+ 
+     TRACE( "fd: %d type: 0x%08x immediate: 0x%02x\n",
+@@ -179,7 +181,7 @@
+  */
+ static NTSTATUS TAPE_GetDriveParams( int fd, TAPE_GET_DRIVE_PARAMETERS *data )
+ {
+-#ifdef HAVE_SYS_MTIO_H
++#if defined(HAVE_SYS_MTIO_H) && !defined(__ETHEREAL__)
+     struct mtget get;
+     NTSTATUS status;
+ 
+@@ -216,7 +218,7 @@
+  */
+ static NTSTATUS TAPE_GetMediaParams( int fd, TAPE_GET_MEDIA_PARAMETERS *data )
+ {
+-#ifdef HAVE_SYS_MTIO_H
++#if defined(HAVE_SYS_MTIO_H) && !defined(__ETHEREAL__)
+     struct mtget get;
+     NTSTATUS status;
+ 
+@@ -254,7 +256,7 @@
+  */
+ static NTSTATUS TAPE_GetPosition( int fd, UINT type, TAPE_GET_POSITION *data )
+ {
+-#ifdef HAVE_SYS_MTIO_H
++#if defined(HAVE_SYS_MTIO_H) && !defined(__ETHEREAL__)
+     struct mtget get;
+ #ifndef HAVE_STRUCT_MTGET_MT_BLKNO
+     struct mtpos pos;
+@@ -307,7 +309,7 @@
+  */
+ static NTSTATUS TAPE_Prepare( int fd, const TAPE_PREPARE *data )
+ {
+-#ifdef HAVE_SYS_MTIO_H
++#if defined(HAVE_SYS_MTIO_H) && !defined(__ETHEREAL__)
+     struct mtop cmd;
+ 
+     TRACE( "fd: %d type: 0x%08x immediate: 0x%02x\n",
+@@ -360,7 +362,7 @@
+  */
+ static NTSTATUS TAPE_SetDriveParams( int fd, const TAPE_SET_DRIVE_PARAMETERS *data )
+ {
+-#if defined(HAVE_SYS_MTIO_H) && defined(MTCOMPRESSION)
++#if defined(HAVE_SYS_MTIO_H) && defined(MTCOMPRESSION) && !defined(__ETHEREAL__)
+     struct mtop cmd;
+ 
+     TRACE( "fd: %d ECC: 0x%02x, compression: 0x%02x padding: 0x%02x\n",
+@@ -374,6 +376,7 @@
+     cmd.mt_op = MTCOMPRESSION;
+     cmd.mt_count = data->Compression;
+ 
++
+     return TAPE_GetStatus( ioctl( fd, MTIOCTOP, &cmd ) );
+ #else
+     FIXME( "Not implemented.\n" );
+@@ -386,7 +389,7 @@
+  */
+ static NTSTATUS TAPE_SetMediaParams( int fd, const TAPE_SET_MEDIA_PARAMETERS *data )
+ {
+-#ifdef HAVE_SYS_MTIO_H
++#if defined(HAVE_SYS_MTIO_H) && !defined(__ETHEREAL__)
+     struct mtop cmd;
+ 
+     TRACE( "fd: %d blocksize: 0x%08x\n", fd, (int)data->BlockSize );
+@@ -406,7 +409,7 @@
+  */
+ static NTSTATUS TAPE_SetPosition( int fd, const TAPE_SET_POSITION *data )
+ {
+-#ifdef HAVE_SYS_MTIO_H
++#if defined(HAVE_SYS_MTIO_H) && !defined(__ETHEREAL__)
+     struct mtop cmd;
+ 
+     TRACE( "fd: %d method: 0x%08x partition: 0x%08x offset: 0x%s immediate: 0x%02x\n",
+@@ -482,7 +485,7 @@
+  */
+ static NTSTATUS TAPE_WriteMarks( int fd, const TAPE_WRITE_MARKS *data )
+ {
+-#ifdef HAVE_SYS_MTIO_H
++#if defined(HAVE_SYS_MTIO_H) && !defined(__ETHEREAL__)
+     struct mtop cmd;
+ 
+     TRACE( "fd: %d type: 0x%08x count: 0x%08x immediate: 0x%02x\n",
+diff -Naur old_extract/wine-10.0/dlls/ntdll/unix/virtual.c new_workspace/wine-10.0/dlls/ntdll/unix/virtual.c
+--- a/dlls/ntdll/unix/virtual.c	2025-01-21 10:42:16.000000000 -0600
++++ b/dlls/ntdll/unix/virtual.c	2026-09-06 12:49:14.560789785 -0500
+@@ -4607,7 +4607,10 @@
+     else if (type & MEM_RESET)
+     {
+         if (!(view = find_view( base, size ))) status = STATUS_NOT_MAPPED_VIEW;
+-        else madvise( base, size, MADV_DONTNEED );
++#ifndef __ETHEREAL__
++	else madvise( base, size, MADV_DONTNEED );
++#endif
++
+     }
+     else  /* commit the pages */
+     {
+@@ -6221,7 +6224,9 @@
+     {
+         base = ROUND_ADDR( addresses[i].VirtualAddress, page_mask );
+         size = ROUND_SIZE( addresses[i].VirtualAddress, addresses[i].NumberOfBytes );
+-        madvise( base, size, MADV_WILLNEED );
++#ifndef __ETHEREAL__
++	madvise( base, size, MADV_WILLNEED );
++#endif
+     }
+ 
+     return STATUS_SUCCESS;
+diff -Naur old_extract/wine-10.0/server/change.c new_workspace/wine-10.0/server/change.c
+--- a/server/change.c	2025-01-21 10:42:16.000000000 -0600
++++ b/server/change.c	2025-09-28 12:32:52.520478918 -0500
+@@ -51,9 +51,12 @@
+ 
+ /* dnotify support */
+ 
+-#ifdef linux
+-#ifndef F_NOTIFY
++#if defined(linux) || defined(__ETHEREAL__)
++#if !defined(F_NOTIFY)
+ #define F_NOTIFY 1026
++#endif
++
++#if !defined(DN_ACCESS)
+ #define DN_ACCESS       0x00000001      /* File accessed */
+ #define DN_MODIFY       0x00000002      /* File modified */
+ #define DN_CREATE       0x00000004      /* File created */
+diff -Naur old_extract/wine-10.0/server/request.c new_workspace/wine-10.0/server/request.c
+--- a/server/request.c	2025-01-21 10:42:16.000000000 -0600
++++ b/server/request.c	2025-12-27 17:56:35.751619330 -0600
+@@ -589,7 +589,7 @@
+     }
+     if (!S_ISDIR(st->st_mode)) fatal_error( "%s is not a directory\n", name );
+     if (st->st_uid != getuid()) fatal_error( "%s is not owned by you\n", name );
+-    if (st->st_mode & 077) fatal_error( "%s must not be accessible by other users\n", name );
++    //if (st->st_mode & 077) fatal_error( "%s must not be accessible by other users\n", name );
+ }
+ 
+ /* create the server directory and chdir to it */
+diff -Naur old_extract/wine-10.0/server/sock.c new_workspace/wine-10.0/server/sock.c
+--- a/server/sock.c	2025-01-21 10:42:16.000000000 -0600
++++ b/server/sock.c	2026-08-30 13:41:25.118829098 -0500
+@@ -108,6 +108,30 @@
+ #include "request.h"
+ #include "user.h"
+ 
++#ifdef __ETHEREAL__
++#include <errno.h>
++struct ifaddrs {
++               struct ifaddrs  *ifa_next;    /* Next item in list */
++               char            *ifa_name;    /* Name of interface */
++               unsigned int     ifa_flags;   /* Flags from SIOCGIFFLAGS */
++               struct sockaddr *ifa_addr;    /* Address of interface */
++               struct sockaddr *ifa_netmask; /* Netmask of interface */
++               union {
++                   struct sockaddr *ifu_broadaddr;
++                                    /* Broadcast address of interface */
++                   struct sockaddr *ifu_dstaddr;
++                                    /* Point-to-point destination address */
++               } ifa_ifu;
++           #define              ifa_broadaddr ifa_ifu.ifu_broadaddr
++           #define              ifa_dstaddr   ifa_ifu.ifu_dstaddr
++               void            *ifa_data;    /* Address-specific data */
++           };
++
++
++       static int getifaddrs(struct ifaddrs **ifap) { return -ENOSYS; }
++       static void freeifaddrs(struct ifaddrs *ifa) { }
++#endif
++
+ #if defined(linux) && !defined(IP_UNICAST_IF)
+ #define IP_UNICAST_IF 50
+ #endif
+@@ -2162,7 +2186,7 @@
+     return setsockopt( fd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(enable) );
+ }
+ 
+-#elif defined(IP_UNICAST_IF) && defined(SO_ATTACH_FILTER) && defined(SO_BINDTODEVICE)
++#elif defined(IP_UNICAST_IF) && defined(SO_ATTACH_FILTER) && defined(SO_BINDTODEVICE) && !defined(__ETHEREAL__)
+ 
+ struct interface_filter
+ {
+@@ -2252,6 +2276,7 @@
+  * UDP sockets and is needed for applications that expect to be able to receive
+  * broadcast packets on a socket that is bound to a specific network interface.
+  */
++#ifndef __ETHEREAL__
+ static int bind_to_interface( struct sock *sock, const struct sockaddr_in *addr )
+ {
+     in_addr_t bind_addr = addr->sin_addr.s_addr;
+@@ -2282,6 +2307,14 @@
+     freeifaddrs( ifaddrs );
+     return !err;
+ }
++#else
++static int bind_to_interface( struct sock *sock, const struct sockaddr_in *addr )
++{
++    fprintf(stderr, "bind_to_interface is not implemented on Ethereal\n");
++    return 0;
++}
++#endif
++
+ 
+ #ifdef HAVE_STRUCT_SOCKADDR_IN6_SIN6_SCOPE_ID
+ static unsigned int get_ipv6_interface_index( const struct in6_addr *addr )
+@@ -4175,10 +4208,12 @@
+     #define tcp_info tcp_connection_info
+ #endif
+ 
++#ifndef __ETHEREAL__
+     struct tcp_info info;
+     socklen_t info_len = sizeof(info);
+     if (getsockopt( fd, IPPROTO_TCP, TCP_INFO, &info, &info_len ) == 0)
+         return tcp_state_to_mib_state( info.tcpi_state );
++#endif
+ 
+     if (debug_level)
+         fprintf( stderr, "getsockopt TCP_INFO failed: %s\n", strerror( errno ) );
+diff -Naur old_extract/wine-10.0/tools/config.guess new_workspace/wine-10.0/tools/config.guess
+--- a/tools/config.guess	2025-01-21 10:42:16.000000000 -0600
++++ b/tools/config.guess	2025-09-28 12:03:54.954667869 -0500
+@@ -892,6 +892,9 @@
+     i*86:BSD/386:*:* | i*86:BSD/OS:*:* | *:Ascend\ Embedded/OS:*:*)
+ 	GUESS=$UNAME_MACHINE-pc-bsdi$UNAME_RELEASE
+ 	;;
++    *:ethereal:*:*)
++	GUESS=$UNAME_MACHINE-pc-ethereal
++	;;
+     sparc*:BSD/OS:*:*)
+ 	GUESS=sparc-unknown-bsdi$UNAME_RELEASE
+ 	;;
+diff -Naur old_extract/wine-10.0/tools/config.sub new_workspace/wine-10.0/tools/config.sub
+--- a/tools/config.sub	2025-01-21 10:42:16.000000000 -0600
++++ b/tools/config.sub	2025-09-28 12:02:45.873429381 -0500
+@@ -2004,6 +2004,7 @@
+ 	| emscripten* \
+ 	| emx* \
+ 	| es* \
++	| ethereal* \
+ 	| fiwix* \
+ 	| freebsd* \
+ 	| fuchsia* \

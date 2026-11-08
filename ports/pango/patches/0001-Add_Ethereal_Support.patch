@@ -1,0 +1,12 @@
+diff -Naur old_extract/pango-1.56.4/pango/pangofc-fontmap.c new_workspace/pango-1.56.4/pango/pangofc-fontmap.c
+--- a/pango/pangofc-fontmap.c	2025-06-27 06:19:08.000000000 -0500
++++ b/pango/pangofc-fontmap.c	2026-09-13 15:14:15.880074614 -0500
+@@ -32,6 +32,9 @@
+  */
+ #define FONTSET_CACHE_SIZE 256
+ 
++#include <fontconfig/fontconfig.h>
++#include <fontconfig/fcfreetype.h>
++
+ #include "config.h"
+ #include <math.h>

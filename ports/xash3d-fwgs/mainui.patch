@@ -1,0 +1,42 @@
+diff --git a/sdk_includes/public/build.h b/sdk_includes/public/build.h
+index bba120b..4aa66a5 100644
+--- a/sdk_includes/public/build.h
++++ b/sdk_includes/public/build.h
+@@ -83,6 +83,7 @@ Then you can use another oneliner to query all variables:
+ #undef XASH_RISCV_SOFTFP
+ #undef XASH_SERENITY
+ #undef XASH_SUNOS
++#undef XASH_ETHEREAL
+ #undef XASH_TERMUX
+ #undef XASH_WIN32
+ #undef XASH_X86
+@@ -136,6 +137,8 @@ Then you can use another oneliner to query all variables:
+ 		#define XASH_WASI 1
+ 	#elif defined __sun__
+ 		#define XASH_SUNOS 1
++	#elif defined __ETHEREAL__
++		#define XASH_ETHEREAL 1
+ 	#elif defined __EMSCRIPTEN__
+ 		#define XASH_EMSCRIPTEN 1
+ 	#elif defined __gnu_hurd__
+diff --git a/sdk_includes/public/buildenums.h b/sdk_includes/public/buildenums.h
+index f4f3e15..68a9808 100644
+--- a/sdk_includes/public/buildenums.h
++++ b/sdk_includes/public/buildenums.h
+@@ -44,6 +44,7 @@ GNU General Public License for more details.
+ #define PLATFORM_WASI       15
+ #define PLATFORM_SUNOS      16
+ #define PLATFORM_HURD       17
++#define PLATFORM_ETHEREAL   18
+ 
+ #if XASH_WIN32
+ 	#define XASH_PLATFORM PLATFORM_WIN32
+@@ -79,6 +80,8 @@ GNU General Public License for more details.
+ 	#define XASH_PLATFORM PLATFORM_SUNOS
+ #elif XASH_HURD
+ 	#define XASH_PLATFORM PLATFORM_HURD
++#elif XASH_ETHEREAL
++	#define XASH_PLATFORM PLATFORM_ETHEREAL
+ #else
+ 	#error
+ #endif
