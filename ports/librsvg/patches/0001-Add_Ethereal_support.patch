@@ -1,0 +1,78 @@
+diff -Naur old_extract/librsvg-2.40.21/rsvg-private.h new_workspace/librsvg-2.40.21/rsvg-private.h
+--- a/rsvg-private.h	2020-02-26 11:40:25.000000000 -0600
++++ b/rsvg-private.h	2026-09-13 18:35:59.428290779 -0500
+@@ -31,7 +31,7 @@
+ 
+ #include "rsvg.h"
+ 
+-#include <libxml/SAX.h>
++#include <libxml/tree.h>
+ #include <libxml/xmlmemory.h>
+ #include <pango/pango.h>
+ #include <glib.h>
+
+diff -Naur old_extract/librsvg-2.40.21/config.sub new_workspace/librsvg-2.40.21/config.sub
+--- a/config.sub	2020-02-26 11:45:17.000000000 -0600
++++ b/config.sub	2026-09-13 18:30:45.371694528 -0500
+@@ -1379,7 +1379,7 @@
+ 	      | -clix* | -riscos* | -uniplus* | -iris* | -rtu* | -xenix* \
+ 	      | -hiux* | -knetbsd* | -mirbsd* | -netbsd* \
+ 	      | -bitrig* | -openbsd* | -solidbsd* | -libertybsd* \
+-	      | -ekkobsd* | -kfreebsd* | -freebsd* | -riscix* | -lynxos* \
++	      | -ekkobsd* | -kfreebsd* | -ethereal* | -freebsd* | ethereal* | -riscix* | -lynxos* \
+ 	      | -bosx* | -nextstep* | -cxux* | -aout* | -elf* | -oabi* \
+ 	      | -ptx* | -coff* | -ecoff* | -winnt* | -domain* | -vsta* \
+ 	      | -udi* | -eabi* | -lites* | -ieee* | -go32* | -aux* | -hcos* \
+diff -Naur old_extract/librsvg-2.40.21/configure new_workspace/librsvg-2.40.21/configure
+--- a/configure	2020-02-26 11:45:16.000000000 -0600
++++ b/configure	2026-09-13 18:38:16.600326660 -0500
+@@ -6862,6 +6862,10 @@
+   lt_cv_deplibs_check_method=pass_all
+   ;;
+ 
++ethereal*)
++      lt_cv_deplibs_check_method=pass_all
++      ;;
++
+ hpux10.20* | hpux11*)
+   lt_cv_file_magic_cmd=/usr/bin/file
+   case $host_cpu in
+@@ -12429,6 +12433,15 @@
+   shlibpath_var=LD_LIBRARY_PATH
+   ;;
+ 
++ethereal*)
++  version_type=linux # correct to gnu/linux during the next big refactor
++  need_lib_prefix=no
++  need_version=no
++  library_names_spec='$libname$release$shared_ext$versuffix $libname$release$shared_ext$major $libname$shared_ext'
++  soname_spec='$libname$release$shared_ext$major'
++  shlibpath_var=LD_LIBRARY_PATH
++  ;;
++
+ freebsd* | dragonfly*)
+   # DragonFly does not have aout.  When/if they implement a new
+   # versioning mechanism, adjust this.
+@@ -14745,6 +14758,10 @@
+   gdk_pixbuf_binarydir="`$PKG_CONFIG --variable=gdk_pixbuf_binarydir gdk-pixbuf-2.0`"
+   gdk_pixbuf_moduledir=`$PKG_CONFIG --variable gdk_pixbuf_moduledir gdk-pixbuf-2.0`
+   gdk_pixbuf_cache_file=`$PKG_CONFIG --variable gdk_pixbuf_cache_file gdk-pixbuf-2.0`
++  gdk_pixbuf_binarydir="${gdk_pixbuf_binarydir#$SYSROOT}"
++  gdk_pixbuf_moduledir="${gdk_pixbuf_moduledir#$SYSROOT}"
++  gdk_pixbuf_cache_file="${gdk_pixbuf_cache_file#$SYSROOT}"
++  echo hi
+ fi
+ 
+ 
+diff -Naur old_extract/librsvg-2.40.21/rsvg-css.c new_workspace/librsvg-2.40.21/rsvg-css.c
+--- a/rsvg-css.c	2018-10-01 17:50:22.000000000 -0500
++++ b/rsvg-css.c	2026-09-13 18:35:54.030339042 -0500
+@@ -839,7 +839,7 @@
+ }
+ 
+ static void
+-rsvg_xml_noerror (void *data, xmlErrorPtr error)
++rsvg_xml_noerror (void *data, const xmlError*error)
+ {
+ }
+ 
